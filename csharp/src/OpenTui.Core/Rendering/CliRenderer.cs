@@ -106,6 +106,8 @@ public class CliRenderer : IDisposable
             SysConsole.Write(AnsiCodes.SwitchToAlternate);
             SysConsole.Write(AnsiCodes.HideCursor);
             SysConsole.Write(AnsiCodes.ClearAndHome);
+            // Disable autowrap so writing to the last terminal cell doesn't cause a scroll
+            SysConsole.Write("\x1b[?7l");
             // Enable mouse
             SysConsole.Write("\x1b[?1000h\x1b[?1002h\x1b[?1006h");
             SysConsole.Out.Flush();
@@ -209,6 +211,8 @@ public class CliRenderer : IDisposable
         {
             // Disable mouse
             SysConsole.Write("\x1b[?1000l\x1b[?1002l\x1b[?1006l");
+            // Re-enable autowrap
+            SysConsole.Write("\x1b[?7h");
             SysConsole.Write(AnsiCodes.ShowCursor);
             SysConsole.Write(AnsiCodes.SwitchToMain);
             SysConsole.Write(AnsiCodes.Reset);
