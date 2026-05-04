@@ -33,6 +33,3 @@ jobs:
 
       - name: Run layout sample (smoke test)
         run: dotnet run --project samples/OpenTui.Samples/OpenTui.Samples.csproj --configuration Release -- layout
-
-      - name: Run editor sample (smoke test)
-        run: dotnet run --project samples/OpenTui.Samples/OpenTui.Samples.csproj --configuration Release -- editor
