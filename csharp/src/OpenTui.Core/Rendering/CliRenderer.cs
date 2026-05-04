@@ -87,12 +87,6 @@ public class CliRenderer : IDisposable
     {
         _renderRequested = true;
         _renderSignal.Set();
-
-        if (_running && !_disposed && !_config.Testing)
-        {
-            _renderRequested = false;
-            DoRender();
-        }
     }
 
     internal void RegisterRenderable(Renderable r)
@@ -206,6 +200,10 @@ public class CliRenderer : IDisposable
 
         _renderSignal.Set();
         _sigwinchReg?.Dispose();
+
+        _renderThread?.Join(TimeSpan.FromSeconds(1));
+        _stdinThread?.Join(TimeSpan.FromSeconds(1));
+        _renderSignal.Dispose();
 
         if (!_config.Testing)
         {
@@ -513,6 +511,25 @@ public class CliRenderer : IDisposable
             };
         }
 
+        if ((record.EventFlags & MouseMoved) != 0)
+        {
+            // Emit drag events when the left button is held; ignore pure hover moves
+            if ((record.ButtonState & FromLeft1stButtonPressed) != 0)
+            {
+                return new MouseEvent
+                {
+                    X = record.MousePosition.X,
+                    Y = record.MousePosition.Y,
+                    Button = MouseButton.Left,
+                    Pressed = true,
+                    Ctrl = (record.ControlKeyState & (LeftCtrlPressed | RightCtrlPressed)) != 0,
+                    Alt = (record.ControlKeyState & (LeftAltPressed | RightAltPressed)) != 0,
+                    Shift = (record.ControlKeyState & ShiftPressed) != 0
+                };
+            }
+            return null;
+        }
+
         if ((record.ButtonState & FromLeft1stButtonPressed) != 0)
         {
             return new MouseEvent
@@ -526,9 +543,6 @@ public class CliRenderer : IDisposable
                 Shift = (record.ControlKeyState & ShiftPressed) != 0
             };
         }
-
-        if ((record.EventFlags & MouseMoved) != 0)
-            return null;
 
         return new MouseEvent
         {

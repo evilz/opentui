@@ -81,6 +81,10 @@ public class ASCIIFontRenderable : Renderable
         ['9'] = new[] { "9", "9", "9" }
     };
 
+    private static readonly Dictionary<char, string[]> ShadeFont = BuildTransformedFont('░');
+    private static readonly Dictionary<char, string[]> SlickFont = BuildTransformedFont('╱');
+    private const int GlyphSpacing = 1;
+
     public ASCIIFontRenderable(CliRenderer? renderer) : base(renderer) { }
 
     public bool ContainsPoint(int x, int y)
@@ -89,7 +93,20 @@ public class ASCIIFontRenderable : Renderable
     public int ColumnToTextIndex(int x)
     {
         int relative = Math.Max(0, x - ScreenX);
-        return Math.Clamp(relative / 6, 0, Text.Length);
+        var font = GetFont();
+        const int spacing = GlyphSpacing;
+        int col = 0;
+        for (int i = 0; i < Text.Length; i++)
+        {
+            char c = char.ToUpperInvariant(Text[i]);
+            if (!font.TryGetValue(c, out var pattern))
+                pattern = font.TryGetValue(' ', out var space) ? space : Font5x3[' '];
+            int charWidth = pattern[0].Length + spacing;
+            if (relative < col + charWidth)
+                return i;
+            col += charWidth;
+        }
+        return Text.Length;
     }
 
     public void SetSelection(int start, int end)
@@ -127,7 +144,7 @@ public class ASCIIFontRenderable : Renderable
             buffer.FillRect(x, y, w, h, bg);
 
         var font = GetFont();
-        int spacing = Font.Equals("tiny", StringComparison.OrdinalIgnoreCase) ? 1 : 1;
+        int spacing = GlyphSpacing;
         int col = x;
         for (int i = 0; i < Text.Length; i++)
         {
@@ -157,8 +174,8 @@ public class ASCIIFontRenderable : Renderable
         return Font.ToLowerInvariant() switch
         {
             "tiny" => TinyFont,
-            "shade" => BuildTransformedFont('░'),
-            "slick" => BuildTransformedFont('╱'),
+            "shade" => ShadeFont,
+            "slick" => SlickFont,
             _ => Font5x3
         };
     }

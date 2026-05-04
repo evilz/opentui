@@ -27,7 +27,7 @@ public class InputRenderable : Renderable
         {
             _value = MaxLength.HasValue && value.Length > MaxLength.Value ? value[..MaxLength.Value] : value;
             _cursorPos = Math.Min(_cursorPos, _value.Length);
-            _scrollOffset = Math.Min(_scrollOffset, _value.Length);
+            _scrollOffset = _value.Length > 0 ? Math.Min(_scrollOffset, _value.Length - 1) : 0;
             RequestRender();
         }
     }
@@ -79,18 +79,17 @@ public class InputRenderable : Renderable
             case "backspace":
                 if (_cursorPos > 0)
                 {
-                    _value = Value[..(_cursorPos - 1)] + Value[_cursorPos..];
+                    var newValue = Value[..(_cursorPos - 1)] + Value[_cursorPos..];
                     _cursorPos--;
+                    Value = newValue;
                     Emit("input", Value);
-                    RequestRender();
                 }
                 break;
             case "delete":
                 if (_cursorPos < Value.Length)
                 {
-                    _value = Value[.._cursorPos] + Value[(_cursorPos + 1)..];
+                    Value = Value[.._cursorPos] + Value[(_cursorPos + 1)..];
                     Emit("input", Value);
-                    RequestRender();
                 }
                 break;
             case "left":
@@ -110,10 +109,10 @@ public class InputRenderable : Renderable
                 {
                     if (MaxLength == null || Value.Length < MaxLength.Value)
                     {
-                        _value = Value[.._cursorPos] + key.Char.Value + Value[_cursorPos..];
+                        var newValue = Value[.._cursorPos] + key.Char.Value + Value[_cursorPos..];
                         _cursorPos++;
+                        Value = newValue;
                         Emit("input", Value);
-                        RequestRender();
                     }
                 }
                 break;
