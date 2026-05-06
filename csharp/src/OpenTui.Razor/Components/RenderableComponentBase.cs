@@ -7,6 +7,8 @@ namespace OpenTui.Razor.Components;
 
 public abstract class RenderableComponentBase<TRenderable> : ComponentBase, IDisposable where TRenderable : Renderable
 {
+    private bool _initialized;
+
     [Inject] protected OpenTuiAppContext App { get; set; } = null!;
     [CascadingParameter] protected IRenderableParent? Parent { get; set; }
 
@@ -51,12 +53,13 @@ public abstract class RenderableComponentBase<TRenderable> : ComponentBase, IDis
 
         ApplyCommonParameters(Renderable);
         ApplyParameters(Renderable);
+        _initialized = true;
         App.RequestRender();
     }
 
     protected override void OnParametersSet()
     {
-        if (Renderable == null)
+        if (!_initialized)
             return;
 
         ApplyCommonParameters(Renderable);
@@ -114,7 +117,7 @@ public abstract class RenderableComponentBase<TRenderable> : ComponentBase, IDis
 
     public virtual void Dispose()
     {
-        if (Renderable == null)
+        if (!_initialized)
             return;
 
         if (Parent != null)

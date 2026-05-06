@@ -10,7 +10,7 @@ public abstract class SampleComponentBase : ComponentBase, IDisposable
     [Inject] protected OpenTuiAppContext App { get; set; } = null!;
 
     private readonly List<Action<object?>> _keypressHandlers = [];
-    private readonly List<(EventHandler<OpenTui.Core.Rendering.ResizeEventArgs> Handler, bool Registered)> _resizeHandlers = [];
+    private readonly List<EventHandler<OpenTui.Core.Rendering.ResizeEventArgs>> _resizeHandlers = [];
     private readonly List<Timer> _timers = [];
 
     protected void SetBackground(string color) => App.Renderer.SetBackgroundColor(color);
@@ -32,7 +32,7 @@ public abstract class SampleComponentBase : ComponentBase, IDisposable
     protected void RegisterResize(EventHandler<OpenTui.Core.Rendering.ResizeEventArgs> handler)
     {
         App.Renderer.Resize += handler;
-        _resizeHandlers.Add((handler, true));
+        _resizeHandlers.Add(handler);
     }
 
     protected Timer CreateTimer(TimerCallback callback, TimeSpan period)
@@ -59,7 +59,7 @@ public abstract class SampleComponentBase : ComponentBase, IDisposable
         foreach (var handler in _keypressHandlers)
             ((EventEmitter)App.Renderer.KeyInput).Off("keypress", handler);
 
-        foreach (var (handler, registered) in _resizeHandlers.Where(entry => entry.Registered))
+        foreach (var handler in _resizeHandlers)
             App.Renderer.Resize -= handler;
 
         foreach (var timer in _timers)

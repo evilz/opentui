@@ -28,9 +28,7 @@
     private int _nextIndex = 1;
 
     private int ContentHeight => Items.Sum(item => item.IsBanner ? 5 : 9);
-    private string Status => _scrollBox == null
-        ? "Preparing scroll sample..."
-        : $"Scroll X:{_scrollBox.Renderable.ScrollX} Y:{_scrollBox.Renderable.ScrollY} | Items:{Items.Count} | V:{OnOff(_scrollBox.Renderable.ShowVerticalScrollbar)} H:{OnOff(_scrollBox.Renderable.ShowHorizontalScrollbar)}";
+    private string Status => _scrollBox == null ? "Preparing scroll sample..." : BuildStatus();
 
     protected override void OnInitialized()
     {
@@ -101,6 +99,9 @@
         4 => "#bb9af7",
         _ => "#e0af68"
     };
+
+    private string BuildStatus()
+        => $"Scroll X:{_scrollBox!.Renderable.ScrollX} Y:{_scrollBox.Renderable.ScrollY} | Items:{Items.Count} | V:{OnOff(_scrollBox.Renderable.ShowVerticalScrollbar)} H:{OnOff(_scrollBox.Renderable.ShowHorizontalScrollbar)}";
 
     private static string OnOff(bool value) => value ? "ON" : "OFF";
 
