@@ -11,8 +11,8 @@ public abstract class RenderableComponentBase<TRenderable> : ComponentBase, IDis
     [CascadingParameter] protected IRenderableParent? Parent { get; set; }
 
     [Parameter] public string? Id { get; set; }
-    [Parameter] public object? Width { get; set; }
-    [Parameter] public object? Height { get; set; }
+    [Parameter] public string? Width { get; set; }
+    [Parameter] public string? Height { get; set; }
     [Parameter] public FlexDirection? FlexDirection { get; set; }
     [Parameter] public AlignItems? AlignItems { get; set; }
     [Parameter] public JustifyContent? JustifyContent { get; set; }

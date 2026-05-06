@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
+#pragma warning disable BL0006
 
 namespace OpenTui.Razor.Hosting;
 
