@@ -6,6 +6,8 @@ namespace OpenTui.Razor.Components;
 
 public abstract class ContainerRenderableComponentBase<TRenderable> : RenderableComponentBase<TRenderable>, IRenderableParent where TRenderable : Renderable
 {
+    private readonly HashSet<string> _childIds = [];
+
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -22,12 +24,13 @@ public abstract class ContainerRenderableComponentBase<TRenderable> : Renderable
 
     public void AddChild(Renderable child)
     {
-        if (Renderable.GetChildren().All(existing => existing.Id != child.Id))
+        if (_childIds.Add(child.Id))
             Renderable.Add(child);
     }
 
     public void RemoveChild(Renderable child)
     {
+        _childIds.Remove(child.Id);
         Renderable.Remove(child.Id);
     }
 }

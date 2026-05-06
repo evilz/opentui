@@ -25,9 +25,10 @@
 @code {
     private ScrollBox? _scrollBox;
     private List<ScrollItem> Items { get; } = [];
+    private int _contentHeight;
     private int _nextIndex = 1;
 
-    private int ContentHeight => Items.Sum(item => item.IsBanner ? 5 : 9);
+    private int ContentHeight => _contentHeight;
     private string Status => _scrollBox == null ? "Preparing scroll sample..." : BuildStatus();
 
     protected override void OnInitialized()
@@ -80,6 +81,7 @@
     private void AddBanner()
     {
         Items.Add(new ScrollItem(true, $"SCROLL DEMO {_nextIndex++}", string.Empty, "#9ece6a", string.Empty));
+        _contentHeight += 5;
     }
 
     private void AddBox()
@@ -88,6 +90,7 @@
         var background = index % 2 == 0 ? "#292e42" : "#2f3449";
         var color = Palette(index);
         Items.Add(new ScrollItem(false, $"Box {index}", $"[{index:0000}] Box {index}\nMultiline content with mixed lengths for stress testing.\n* Detail A: data data data\n* Progress: ███████░░░░░ 12\n* Long: The quick brown fox jumps over the lazy dog while terminal scrolling keeps content clipped.", color, background));
+        _contentHeight += 9;
     }
 
     private static string Palette(int i) => (i % 6) switch

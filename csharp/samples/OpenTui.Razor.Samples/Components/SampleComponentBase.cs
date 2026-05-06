@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using OpenTui.Core.Events;
 using OpenTui.Core.Input;
 using OpenTui.Razor.Hosting;
 
@@ -25,7 +24,7 @@ public abstract class SampleComponentBase : ComponentBase, IDisposable
                 handler(key);
         };
 
-        ((EventEmitter)App.Renderer.KeyInput).On("keypress", wrapped);
+        App.KeyEvents.On("keypress", wrapped);
         _keypressHandlers.Add(wrapped);
     }
 
@@ -57,7 +56,7 @@ public abstract class SampleComponentBase : ComponentBase, IDisposable
     public virtual void Dispose()
     {
         foreach (var handler in _keypressHandlers)
-            ((EventEmitter)App.Renderer.KeyInput).Off("keypress", handler);
+            App.KeyEvents.Off("keypress", handler);
 
         foreach (var handler in _resizeHandlers)
             App.Renderer.Resize -= handler;
