@@ -21,15 +21,15 @@ public sealed class Slider : RenderableComponentBase<SliderRenderable>
 
     protected override void OnRenderableCreated(SliderRenderable renderable)
     {
-        renderable.On("valueChanged", async data =>
+        renderable.On("valueChanged", data =>
         {
             var value = data is float single ? single : Convert.ToSingle(data ?? 0f);
-            await InvokeAsync(async () =>
+            DispatchEvent(async () =>
             {
                 if (ValueChanged.HasDelegate)
-                    await ValueChanged.InvokeAsync(value);
+                    await ValueChanged.InvokeAsync(value).ConfigureAwait(false);
                 if (OnValueChanged.HasDelegate)
-                    await OnValueChanged.InvokeAsync(value);
+                    await OnValueChanged.InvokeAsync(value).ConfigureAwait(false);
             });
         });
     }

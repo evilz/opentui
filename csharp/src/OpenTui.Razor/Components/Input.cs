@@ -22,37 +22,37 @@ public sealed class Input : RenderableComponentBase<InputRenderable>
 
     protected override void OnRenderableCreated(InputRenderable renderable)
     {
-        renderable.On("input", async data =>
+        renderable.On("input", data =>
         {
             var value = data?.ToString() ?? string.Empty;
-            await InvokeAsync(async () =>
+            DispatchEvent(async () =>
             {
                 if (ValueChanged.HasDelegate)
-                    await ValueChanged.InvokeAsync(value);
+                    await ValueChanged.InvokeAsync(value).ConfigureAwait(false);
                 if (OnInput.HasDelegate)
-                    await OnInput.InvokeAsync(value);
+                    await OnInput.InvokeAsync(value).ConfigureAwait(false);
             });
         });
 
-        renderable.On("change", async data =>
+        renderable.On("change", data =>
         {
             var value = data?.ToString() ?? string.Empty;
-            await InvokeAsync(async () =>
+            DispatchEvent(async () =>
             {
                 if (ValueChanged.HasDelegate)
-                    await ValueChanged.InvokeAsync(value);
+                    await ValueChanged.InvokeAsync(value).ConfigureAwait(false);
                 if (OnChange.HasDelegate)
-                    await OnChange.InvokeAsync(value);
+                    await OnChange.InvokeAsync(value).ConfigureAwait(false);
             });
         });
 
-        renderable.On("enter", async data =>
+        renderable.On("enter", data =>
         {
             var value = data?.ToString() ?? string.Empty;
-            await InvokeAsync(async () =>
+            DispatchEvent(async () =>
             {
                 if (OnEnter.HasDelegate)
-                    await OnEnter.InvokeAsync(value);
+                    await OnEnter.InvokeAsync(value).ConfigureAwait(false);
             });
         });
     }

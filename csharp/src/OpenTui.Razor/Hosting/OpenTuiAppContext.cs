@@ -6,9 +6,10 @@ namespace OpenTui.Razor.Hosting;
 
 public sealed class OpenTuiRazorOptions
 {
-    public bool ExitOnCtrlC { get; set; }
-    public int TargetFps { get; set; } = 60;
-    public string BackgroundColor { get; set; } = "#000000";
+    public bool ExitOnCtrlC { get; set; } = true;
+    public int TargetFps { get; set; } = 30;
+    public bool Testing { get; set; }
+    public string? BackgroundColor { get; set; }
 }
 
 public sealed class OpenTuiAppContext : IDisposable
@@ -23,6 +24,7 @@ public sealed class OpenTuiAppContext : IDisposable
         {
             ExitOnCtrlC = settings.ExitOnCtrlC,
             TargetFps = settings.TargetFps,
+            Testing = settings.Testing,
             BackgroundColor = settings.BackgroundColor
         });
     }

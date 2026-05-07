@@ -20,27 +20,27 @@ public sealed class Select : RenderableComponentBase<SelectRenderable>
 
     protected override void OnRenderableCreated(SelectRenderable renderable)
     {
-        renderable.On("selectionChanged", async data =>
+        renderable.On("selectionChanged", data =>
         {
             var value = Convert.ToInt32(data ?? 0);
-            await InvokeAsync(async () =>
+            DispatchEvent(async () =>
             {
                 if (SelectedIndexChanged.HasDelegate)
-                    await SelectedIndexChanged.InvokeAsync(value);
+                    await SelectedIndexChanged.InvokeAsync(value).ConfigureAwait(false);
                 if (OnSelectionChanged.HasDelegate)
-                    await OnSelectionChanged.InvokeAsync(value);
+                    await OnSelectionChanged.InvokeAsync(value).ConfigureAwait(false);
             });
         });
 
-        renderable.On("itemSelected", async data =>
+        renderable.On("itemSelected", data =>
         {
             if (data is not SelectOption option)
                 return;
 
-            await InvokeAsync(async () =>
+            DispatchEvent(async () =>
             {
                 if (OnItemSelected.HasDelegate)
-                    await OnItemSelected.InvokeAsync(option);
+                    await OnItemSelected.InvokeAsync(option).ConfigureAwait(false);
             });
         });
     }

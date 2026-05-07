@@ -11,10 +11,12 @@ internal sealed class OpenTuiHostedService<[DynamicallyAccessedMembers(Dynamical
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        using var registration = stoppingToken.Register(app.Renderer.Destroy);
+
         try
         {
             await renderer.MountComponentAsync<TComponent>().ConfigureAwait(false);
-            await Task.Run(() => app.Renderer.Start(), stoppingToken).ConfigureAwait(false);
+            await Task.Run(app.Renderer.Start).ConfigureAwait(false);
         }
         finally
         {

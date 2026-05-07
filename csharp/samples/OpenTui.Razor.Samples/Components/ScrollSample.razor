@@ -1,7 +1,7 @@
 @inherits SampleComponentBase
 
 <Box Width="100%" Height="100%" BackgroundColor="#1a1b26" FlexDirection="FlexDirection.Column">
-    <ScrollBox @ref="_scrollBox" Width="100%" Height="100%" FlexGrow="1" BackgroundColor="#16161e" Border="true" BorderColor="#7aa2f7" TrackColor="#414868" ThumbColor="#7aa2f7" ContentWidth="180" ContentHeight="@ContentHeight" AutoFocus="true">
+    <ScrollBox @ref="_scrollBox" Width="100%" Height="100%" FlexGrow="1" BackgroundColor="#16161e" Border="true" BorderColor="#7aa2f7" TrackColor="#414868" ThumbColor="#7aa2f7" ContentWidth="180" ContentHeight="@ContentHeight" ShowVerticalScrollbar="@_showVerticalScrollbar" ShowHorizontalScrollbar="@_showHorizontalScrollbar" AutoFocus="true">
         @foreach (var item in Items)
         {
             if (item.IsBanner)
@@ -27,6 +27,8 @@
     private List<ScrollItem> Items { get; } = [];
     private int _contentHeight;
     private int _nextIndex = 1;
+    private bool _showVerticalScrollbar = true;
+    private bool _showHorizontalScrollbar;
 
     private int ContentHeight => _contentHeight;
     private string Status => _scrollBox == null ? "Preparing scroll sample..." : BuildStatus();
@@ -62,12 +64,12 @@
         {
             case "v":
                 key.PreventDefault();
-                _scrollBox.Renderable.ShowVerticalScrollbar = !_scrollBox.Renderable.ShowVerticalScrollbar;
+                _showVerticalScrollbar = !_showVerticalScrollbar;
                 InvokeAsync(StateHasChanged);
                 break;
             case "h":
                 key.PreventDefault();
-                _scrollBox.Renderable.ShowHorizontalScrollbar = !_scrollBox.Renderable.ShowHorizontalScrollbar;
+                _showHorizontalScrollbar = !_showHorizontalScrollbar;
                 InvokeAsync(StateHasChanged);
                 break;
             case "n":
@@ -104,7 +106,7 @@
     };
 
     private string BuildStatus()
-        => $"Scroll X:{_scrollBox!.Renderable.ScrollX} Y:{_scrollBox.Renderable.ScrollY} | Items:{Items.Count} | V:{OnOff(_scrollBox.Renderable.ShowVerticalScrollbar)} H:{OnOff(_scrollBox.Renderable.ShowHorizontalScrollbar)}";
+        => $"Scroll X:{_scrollBox!.Renderable.ScrollX} Y:{_scrollBox.Renderable.ScrollY} | Items:{Items.Count} | V:{OnOff(_showVerticalScrollbar)} H:{OnOff(_showHorizontalScrollbar)}";
 
     private static string OnOff(bool value) => value ? "ON" : "OFF";
 

@@ -7,32 +7,100 @@ namespace OpenTui.Razor.Hosting;
 
 internal sealed class NoopComponentRenderer(IServiceProvider services, ILoggerFactory loggerFactory) : Renderer(services, loggerFactory)
 {
-    private sealed class ImmediateDispatcher : Dispatcher
+    private sealed class SerializedDispatcher : Dispatcher
     {
-        public override bool CheckAccess() => true;
+        private readonly object _sync = new();
+        private readonly AsyncLocal<bool> _isExecuting = new();
+        private Task _tail = Task.CompletedTask;
+
+        public override bool CheckAccess() => _isExecuting.Value;
+
         public override Task InvokeAsync(Action workItem)
         {
-            workItem();
-            return Task.CompletedTask;
+            ArgumentNullException.ThrowIfNull(workItem);
+            return InvokeAsync(() =>
+            {
+                workItem();
+                return Task.CompletedTask;
+            });
         }
 
-        public override Task InvokeAsync(Func<Task> workItem) => workItem();
+        public override Task InvokeAsync(Func<Task> workItem)
+        {
+            ArgumentNullException.ThrowIfNull(workItem);
 
-        public override Task<TResult> InvokeAsync<TResult>(Func<TResult> workItem) => Task.FromResult(workItem());
+            if (CheckAccess())
+                return workItem();
 
-        public override Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> workItem) => workItem();
+            lock (_sync)
+            {
+                var task = _tail.ContinueWith(_ => ExecuteAsync(workItem), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+                _tail = task.ContinueWith(static _ => { }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                return task;
+            }
+        }
+
+        public override Task<TResult> InvokeAsync<TResult>(Func<TResult> workItem)
+        {
+            ArgumentNullException.ThrowIfNull(workItem);
+            return InvokeAsync(() => Task.FromResult(workItem()));
+        }
+
+        public override Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> workItem)
+        {
+            ArgumentNullException.ThrowIfNull(workItem);
+
+            if (CheckAccess())
+                return workItem();
+
+            lock (_sync)
+            {
+                var task = _tail.ContinueWith(_ => ExecuteAsync(workItem), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+                _tail = task.ContinueWith(static _ => { }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                return task;
+            }
+        }
+
+        private async Task ExecuteAsync(Func<Task> workItem)
+        {
+            _isExecuting.Value = true;
+            try
+            {
+                await workItem().ConfigureAwait(false);
+            }
+            finally
+            {
+                _isExecuting.Value = false;
+            }
+        }
+
+        private async Task<TResult> ExecuteAsync<TResult>(Func<Task<TResult>> workItem)
+        {
+            _isExecuting.Value = true;
+            try
+            {
+                return await workItem().ConfigureAwait(false);
+            }
+            finally
+            {
+                _isExecuting.Value = false;
+            }
+        }
     }
 
-    private static readonly Dispatcher DispatcherInstance = new ImmediateDispatcher();
+    private readonly Dispatcher _dispatcher = new SerializedDispatcher();
 
-    public override Dispatcher Dispatcher => DispatcherInstance;
+    public override Dispatcher Dispatcher => _dispatcher;
 
     public Task MountComponentAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TComponent>()
         where TComponent : IComponent
     {
-        var component = (TComponent)InstantiateComponent(typeof(TComponent));
-        var componentId = AssignRootComponentId(component);
-        return RenderRootComponentAsync(componentId);
+        return Dispatcher.InvokeAsync(async () =>
+        {
+            var component = (TComponent)InstantiateComponent(typeof(TComponent));
+            var componentId = AssignRootComponentId(component);
+            await RenderRootComponentAsync(componentId).ConfigureAwait(false);
+        });
     }
 
     protected override Task UpdateDisplayAsync(in RenderBatch renderBatch) => Task.CompletedTask;

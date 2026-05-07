@@ -19,15 +19,15 @@ public sealed class TabSelect : RenderableComponentBase<TabSelectRenderable>
 
     protected override void OnRenderableCreated(TabSelectRenderable renderable)
     {
-        renderable.On("tabChanged", async data =>
+        renderable.On("tabChanged", data =>
         {
             var value = Convert.ToInt32(data ?? 0);
-            await InvokeAsync(async () =>
+            DispatchEvent(async () =>
             {
                 if (SelectedIndexChanged.HasDelegate)
-                    await SelectedIndexChanged.InvokeAsync(value);
+                    await SelectedIndexChanged.InvokeAsync(value).ConfigureAwait(false);
                 if (OnTabChanged.HasDelegate)
-                    await OnTabChanged.InvokeAsync(value);
+                    await OnTabChanged.InvokeAsync(value).ConfigureAwait(false);
             });
         });
     }

@@ -20,15 +20,15 @@ public sealed class Textarea : RenderableComponentBase<TextareaRenderable>
 
     protected override void OnRenderableCreated(TextareaRenderable renderable)
     {
-        renderable.On("input", async data =>
+        renderable.On("input", data =>
         {
             var value = data?.ToString() ?? string.Empty;
-            await InvokeAsync(async () =>
+            DispatchEvent(async () =>
             {
                 if (ValueChanged.HasDelegate)
-                    await ValueChanged.InvokeAsync(value);
+                    await ValueChanged.InvokeAsync(value).ConfigureAwait(false);
                 if (OnInput.HasDelegate)
-                    await OnInput.InvokeAsync(value);
+                    await OnInput.InvokeAsync(value).ConfigureAwait(false);
             });
         });
     }
