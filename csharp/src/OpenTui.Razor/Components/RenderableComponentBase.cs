@@ -201,7 +201,6 @@ public abstract class RenderableComponentBase<TRenderable> : ComponentBase, IDis
 
         public void Apply(Renderable renderable)
         {
-            renderable.Id = Id;
             renderable.FlexDirection = FlexDirection;
             renderable.AlignItems = AlignItems;
             renderable.JustifyContent = JustifyContent;
