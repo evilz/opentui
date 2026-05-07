@@ -41,6 +41,7 @@ internal static class ScrollSample
             ContentWidth = 180
         };
         scrollBox.SetWidth("100%");
+        scrollBox.FlexShrink = 1;
         main.Add(scrollBox);
 
         var instructions = new BoxRenderable(renderer, new BoxOptions
