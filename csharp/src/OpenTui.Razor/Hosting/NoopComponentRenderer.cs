@@ -34,7 +34,8 @@ internal sealed class NoopComponentRenderer(IServiceProvider services, ILoggerFa
 
             lock (_sync)
             {
-                var task = _tail.ContinueWith(_ => ExecuteAsync(workItem), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+                var state = (_isExecuting, workItem);
+                var task = _tail.ContinueWith(static (_, state) => ExecuteAsync(((AsyncLocal<bool>, Func<Task>))state!), state, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
                 _tail = task.ContinueWith(static _ => { }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                 return task;
             }
@@ -55,35 +56,38 @@ internal sealed class NoopComponentRenderer(IServiceProvider services, ILoggerFa
 
             lock (_sync)
             {
-                var task = _tail.ContinueWith(_ => ExecuteAsync(workItem), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+                var state = (_isExecuting, workItem);
+                var task = _tail.ContinueWith(static (_, state) => ExecuteAsync(((AsyncLocal<bool>, Func<Task<TResult>>))state!), state, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
                 _tail = task.ContinueWith(static _ => { }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                 return task;
             }
         }
 
-        private async Task ExecuteAsync(Func<Task> workItem)
+        private static async Task ExecuteAsync((AsyncLocal<bool> Flag, Func<Task> WorkItem) state)
         {
-            _isExecuting.Value = true;
+            ArgumentNullException.ThrowIfNull(state.WorkItem);
+            state.Flag.Value = true;
             try
             {
-                await workItem().ConfigureAwait(false);
+                await state.WorkItem().ConfigureAwait(false);
             }
             finally
             {
-                _isExecuting.Value = false;
+                state.Flag.Value = false;
             }
         }
 
-        private async Task<TResult> ExecuteAsync<TResult>(Func<Task<TResult>> workItem)
+        private static async Task<TResult> ExecuteAsync<TResult>((AsyncLocal<bool> Flag, Func<Task<TResult>> WorkItem) state)
         {
-            _isExecuting.Value = true;
+            ArgumentNullException.ThrowIfNull(state.WorkItem);
+            state.Flag.Value = true;
             try
             {
-                return await workItem().ConfigureAwait(false);
+                return await state.WorkItem().ConfigureAwait(false);
             }
             finally
             {
-                _isExecuting.Value = false;
+                state.Flag.Value = false;
             }
         }
     }
