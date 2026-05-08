@@ -66,6 +66,7 @@ public class FrameBufferRenderable : Renderable
     protected override void RenderSelf(RenderBuffer buffer, double deltaTime)
     {
         int sx = ScreenX, sy = ScreenY, w = ComputedWidth, h = ComputedHeight;
+        if (w <= 0 || h <= 0 || BufferWidth <= 0 || BufferHeight <= 0) return;
 
         // Each cell is 2 pixel rows (top=fg with ▀, bottom=bg)
         for (int cy = 0; cy < h; cy++)

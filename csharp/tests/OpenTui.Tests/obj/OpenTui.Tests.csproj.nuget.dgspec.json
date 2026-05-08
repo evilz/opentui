@@ -10,7 +10,7 @@
         "projectUniqueName": "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Core/OpenTui.Core.csproj",
         "projectName": "OpenTui.Core",
         "projectPath": "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Core/OpenTui.Core.csproj",
-        "packagesPath": "/home/runner/.nuget/packages/",
+        "packagesPath": "/tmp/codeql-scratch-853067eeeec5e0d5/dbs/csharp/working/packages",
         "outputPath": "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Core/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
@@ -54,7 +54,93 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.14, 9.0.14]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.14, 9.0.14]"
+            }
+          ],
           "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.201/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Razor/OpenTui.Razor.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Razor/OpenTui.Razor.csproj",
+        "projectName": "OpenTui.Razor",
+        "projectPath": "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Razor/OpenTui.Razor.csproj",
+        "packagesPath": "/tmp/codeql-scratch-853067eeeec5e0d5/dbs/csharp/working/packages",
+        "outputPath": "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Razor/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/runner/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Core/OpenTui.Core.csproj": {
+                "projectPath": "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Core/OpenTui.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.200"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.14, 9.0.14]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.14, 9.0.14]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
@@ -69,7 +155,7 @@
         "projectUniqueName": "/home/runner/work/opentui/opentui/csharp/tests/OpenTui.Tests/OpenTui.Tests.csproj",
         "projectName": "OpenTui.Tests",
         "projectPath": "/home/runner/work/opentui/opentui/csharp/tests/OpenTui.Tests/OpenTui.Tests.csproj",
-        "packagesPath": "/home/runner/.nuget/packages/",
+        "packagesPath": "/tmp/codeql-scratch-853067eeeec5e0d5/dbs/csharp/working/packages",
         "outputPath": "/home/runner/work/opentui/opentui/csharp/tests/OpenTui.Tests/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
@@ -87,6 +173,9 @@
             "projectReferences": {
               "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Core/OpenTui.Core.csproj": {
                 "projectPath": "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Core/OpenTui.Core.csproj"
+              },
+              "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Razor/OpenTui.Razor.csproj": {
+                "projectPath": "/home/runner/work/opentui/opentui/csharp/src/OpenTui.Razor/OpenTui.Razor.csproj"
               }
             }
           }
@@ -135,6 +224,16 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.14, 9.0.14]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.14, 9.0.14]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"

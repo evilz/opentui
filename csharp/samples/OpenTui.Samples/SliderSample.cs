@@ -85,9 +85,7 @@ internal static class SliderSample
                 if (focusedSlider == 0) slider1.Focus();
                 else slider2.Focus();
                 UpdateValueText();
-                return;
             }
-            ThreadPool.QueueUserWorkItem(_ => UpdateValueText());
         });
 
         renderer.Start();
