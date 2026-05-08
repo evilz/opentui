@@ -36,6 +36,7 @@ namespace OpenTui.Samples
         {
             var curFg = Rgba.FromInts(255, 255, 255);
             var curBg = Rgba.FromInts(0,   0,   0);
+            var curAttrs = TextAttributes.None;
 
             for (int y = 0; y < buf.Height; y++)
             {
@@ -45,6 +46,16 @@ namespace OpenTui.Samples
                     if (cell == null) { Console.Write(' '); continue; }
                     var c = cell.Value;
                     if (c.Codepoint == 0) continue;
+
+                    if (c.Attributes != curAttrs)
+                    {
+                        Console.Write(AnsiCodes.Reset);
+                        if (c.Attributes != TextAttributes.None)
+                            AnsiCodes.WriteAttributes(Console.Out, c.Attributes);
+                        curAttrs = c.Attributes;
+                        curFg = Rgba.FromInts(255, 255, 255);
+                        curBg = Rgba.FromInts(0, 0, 0);
+                    }
 
                     if (c.Fg != curFg)
                     {
@@ -62,6 +73,7 @@ namespace OpenTui.Samples
                 Console.WriteLine(AnsiCodes.Reset);
                 curFg = Rgba.FromInts(255, 255, 255);
                 curBg = Rgba.FromInts(0,   0,   0);
+                curAttrs = TextAttributes.None;
             }
         }
     }

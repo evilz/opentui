@@ -124,7 +124,8 @@ namespace OpenTui.Core.Rendering
                         lastBg = next.Bg;
                     }
 
-                    sb.Append(next.Codepoint == 0 ? ' ' : char.ConvertFromUtf32(next.Codepoint));
+                    if (next.Codepoint != 0)
+                        sb.Append(char.ConvertFromUtf32(next.Codepoint));
                 }
             }
 

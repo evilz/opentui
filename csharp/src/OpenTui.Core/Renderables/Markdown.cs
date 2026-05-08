@@ -1,5 +1,7 @@
+using System.Text;
 using System.Text.RegularExpressions;
 using OpenTui.Core.Ansi;
+using OpenTui.Core.Buffer;
 using OpenTui.Core.Rendering;
 
 namespace OpenTui.Core.Renderables;
@@ -43,8 +45,7 @@ public class MarkdownRenderable : Renderable
             if (inCodeBlock)
             {
                 buffer.FillRect(x, y + row, w, 1, CodeBg);
-                var code = line.Length > w ? line[..w] : line;
-                buffer.DrawText(x, y + row, code, DefaultFg, CodeBg);
+                DrawTextClipped(buffer, x, y + row, w, line, DefaultFg, CodeBg);
                 row++;
                 continue;
             }
@@ -115,8 +116,25 @@ public class MarkdownRenderable : Renderable
 
     private static void RenderLine(RenderBuffer buffer, int x, int y, int w, string text, Rgba fg, Rgba bg, TextAttributes attrs)
     {
-        var visible = text.Length > w ? text[..w] : text;
-        buffer.DrawText(x, y, visible, fg, bg, attrs);
+        DrawTextClipped(buffer, x, y, w, text, fg, bg, attrs);
+    }
+
+    private static int DrawTextClipped(RenderBuffer buffer, int x, int y, int w, string text, Rgba fg, Rgba bg, TextAttributes attrs = TextAttributes.None)
+    {
+        if (w <= 0 || string.IsNullOrEmpty(text)) return 0;
+
+        int col = 0;
+        foreach (var rune in text.EnumerateRunes())
+        {
+            int runeWidth = CellBuffer.RuneWidth(rune);
+            if (col + runeWidth > w)
+                break;
+
+            buffer.DrawText(x + col, y, rune.ToString(), fg, bg, attrs);
+            col += runeWidth;
+        }
+
+        return col;
     }
 
     private static void RenderInline(RenderBuffer buffer, int x, int y, int w, string text)
@@ -135,9 +153,7 @@ public class MarkdownRenderable : Renderable
                 if (end > 0)
                 {
                     var inner = text[(i + 2)..end];
-                    var visible = inner.Length > w - col ? inner[..(w - col)] : inner;
-                    buffer.DrawText(x + col, y, visible, DefaultFg, DefaultBg, TextAttributes.Bold);
-                    col += visible.Length;
+                    col += DrawTextClipped(buffer, x + col, y, w - col, inner, DefaultFg, DefaultBg, TextAttributes.Bold);
                     i = end + 2;
                     continue;
                 }
@@ -150,9 +166,7 @@ public class MarkdownRenderable : Renderable
                 if (end > 0)
                 {
                     var inner = text[(i + 1)..end];
-                    var visible = inner.Length > w - col ? inner[..(w - col)] : inner;
-                    buffer.DrawText(x + col, y, visible, DefaultFg, DefaultBg, TextAttributes.Italic);
-                    col += visible.Length;
+                    col += DrawTextClipped(buffer, x + col, y, w - col, inner, DefaultFg, DefaultBg, TextAttributes.Italic);
                     i = end + 1;
                     continue;
                 }
@@ -165,10 +179,7 @@ public class MarkdownRenderable : Renderable
                 if (end > 0)
                 {
                     var inner = text[(i + 1)..end];
-                    var visible = inner.Length > w - col ? inner[..(w - col)] : inner;
-                    buffer.FillRect(x + col, y, visible.Length, 1, CodeBg);
-                    buffer.DrawText(x + col, y, visible, Rgba.FromCss("#e06c75"), CodeBg);
-                    col += visible.Length;
+                    col += DrawTextClipped(buffer, x + col, y, w - col, inner, Rgba.FromCss("#e06c75"), CodeBg);
                     i = end + 1;
                     continue;
                 }
@@ -181,18 +192,22 @@ public class MarkdownRenderable : Renderable
                 if (linkMatch.Success)
                 {
                     var linkText = linkMatch.Groups[1].Value;
-                    var visible = linkText.Length > w - col ? linkText[..(w - col)] : linkText;
-                    buffer.DrawText(x + col, y, visible, LinkColor, DefaultBg, TextAttributes.Underline);
-                    col += visible.Length;
+                    col += DrawTextClipped(buffer, x + col, y, w - col, linkText, LinkColor, DefaultBg, TextAttributes.Underline);
                     i += linkMatch.Length;
                     continue;
                 }
             }
 
-            // Regular char
-            buffer.SetCell(x + col, y, text[i], DefaultFg, DefaultBg);
-            col++;
-            i++;
+            // Regular Unicode scalar
+            if (Rune.TryGetRuneAt(text, i, out var rune))
+            {
+                col += DrawTextClipped(buffer, x + col, y, w - col, rune.ToString(), DefaultFg, DefaultBg);
+                i += rune.Utf16SequenceLength;
+            }
+            else
+            {
+                i++;
+            }
         }
     }
 }

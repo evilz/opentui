@@ -1,7 +1,7 @@
 @inherits SampleComponentBase
 
 <Box Width="100%" Height="100%" BackgroundColor="#1a1b26" FlexDirection="FlexDirection.Column">
-    <ScrollBox @ref="_scrollBox" Width="100%" Height="100%" FlexGrow="1" BackgroundColor="#16161e" Border="true" BorderColor="#7aa2f7" TrackColor="#414868" ThumbColor="#7aa2f7" ContentWidth="180" ContentHeight="@ContentHeight" ShowVerticalScrollbar="@_showVerticalScrollbar" ShowHorizontalScrollbar="@_showHorizontalScrollbar" AutoFocus="true">
+    <ScrollBox @ref="_scrollBox" Width="100%" FlexGrow="1" BackgroundColor="#16161e" Border="true" BorderColor="#7aa2f7" TrackColor="#414868" ThumbColor="#7aa2f7" ContentWidth="180" ContentHeight="@ContentHeight" ShowVerticalScrollbar="@_showVerticalScrollbar" ShowHorizontalScrollbar="@_showHorizontalScrollbar" AutoFocus="true">
         @foreach (var item in Items)
         {
             if (item.IsBanner)

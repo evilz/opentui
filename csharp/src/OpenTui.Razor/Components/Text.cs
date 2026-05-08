@@ -1,3 +1,4 @@
+using OpenTui.Core.Ansi;
 using OpenTui.Core.Renderables;
 using OpenTui.Core.Rendering;
 
@@ -10,6 +11,7 @@ public sealed class Text : RenderableComponentBase<TextRenderable>
     [Parameter] public string? Bg { get; set; }
     [Parameter] public string TextAlign { get; set; } = "left";
     [Parameter] public bool Wrap { get; set; } = true;
+    [Parameter] public TextAttributes Attributes { get; set; } = TextAttributes.None;
 
     protected override TextRenderable CreateRenderable(CliRenderer renderer) => new(renderer);
 
@@ -20,5 +22,6 @@ public sealed class Text : RenderableComponentBase<TextRenderable>
         renderable.Bg = Bg;
         renderable.TextAlign = TextAlign;
         renderable.Wrap = Wrap;
+        renderable.Attributes = Attributes;
     }
 }

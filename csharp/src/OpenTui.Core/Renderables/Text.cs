@@ -11,6 +11,7 @@ public class TextOptions
     public string? Bg { get; set; }
     public string TextAlign { get; set; } = "left";
     public bool Wrap { get; set; } = true;
+    public TextAttributes Attributes { get; set; } = TextAttributes.None;
     public object? Width { get; set; }
     public object? Height { get; set; }
     public float FlexGrow { get; set; } = 0;
@@ -23,6 +24,7 @@ public class TextRenderable : Renderable
     public string? Bg { get; set; }
     public string TextAlign { get; set; }
     public bool Wrap { get; set; }
+    public TextAttributes Attributes { get; set; }
 
     public TextRenderable(CliRenderer? renderer, TextOptions? options = null) : base(renderer)
     {
@@ -32,6 +34,7 @@ public class TextRenderable : Renderable
         Bg = opts.Bg;
         TextAlign = opts.TextAlign;
         Wrap = opts.Wrap;
+        Attributes = opts.Attributes;
         LayoutNode.FlexGrow = opts.FlexGrow;
         if (opts.Width != null) SetWidth(opts.Width);
         if (opts.Height != null) SetHeight(opts.Height);
@@ -56,7 +59,7 @@ public class TextRenderable : Renderable
             else if (TextAlign == "right")
                 drawX = x + Math.Max(0, w - line.Length);
 
-            buffer.DrawText(drawX, y + i, line, fg, bg);
+            buffer.DrawText(drawX, y + i, line, fg, bg, Attributes);
         }
     }
 

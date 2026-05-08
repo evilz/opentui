@@ -325,7 +325,8 @@ public class CliRenderer : IDisposable
                     lastBg = nc.Bg;
                 }
 
-                sb.Append(nc.Codepoint == 0 ? ' ' : char.ConvertFromUtf32(nc.Codepoint));
+                if (nc.Codepoint != 0)
+                    sb.Append(char.ConvertFromUtf32(nc.Codepoint));
             }
         }
 
