@@ -59,7 +59,9 @@ public sealed class Input : RenderableComponentBase<InputRenderable>
 
     protected override void ApplyParameters(InputRenderable renderable)
     {
-        renderable.Value = Value ?? string.Empty;
+        var value = Value ?? string.Empty;
+        if (renderable.Value != value)
+            renderable.Value = value;
         renderable.Placeholder = Placeholder;
         renderable.PlaceholderColor = PlaceholderColor;
         renderable.CursorColor = CursorColor;

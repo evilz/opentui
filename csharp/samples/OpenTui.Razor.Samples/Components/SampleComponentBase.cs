@@ -9,6 +9,7 @@ public abstract class SampleComponentBase : ComponentBase, IDisposable
     [Inject] protected OpenTuiAppContext App { get; set; } = null!;
 
     private readonly List<Action<object?>> _keypressHandlers = [];
+    private readonly List<Action<object?>> _mouseHandlers = [];
     private readonly List<EventHandler<OpenTui.Core.Rendering.ResizeEventArgs>> _resizeHandlers = [];
     private readonly List<Timer> _timers = [];
 
@@ -26,6 +27,18 @@ public abstract class SampleComponentBase : ComponentBase, IDisposable
 
         App.KeyEvents.On("keypress", wrapped);
         _keypressHandlers.Add(wrapped);
+    }
+
+    protected void RegisterMouse(Action<MouseEvent> handler)
+    {
+        Action<object?> wrapped = data =>
+        {
+            if (data is MouseEvent mouse)
+                handler(mouse);
+        };
+
+        App.KeyEvents.On("mouse", wrapped);
+        _mouseHandlers.Add(wrapped);
     }
 
     protected void RegisterResize(EventHandler<OpenTui.Core.Rendering.ResizeEventArgs> handler)
@@ -57,6 +70,9 @@ public abstract class SampleComponentBase : ComponentBase, IDisposable
     {
         foreach (var handler in _keypressHandlers)
             App.KeyEvents.Off("keypress", handler);
+
+        foreach (var handler in _mouseHandlers)
+            App.KeyEvents.Off("mouse", handler);
 
         foreach (var handler in _resizeHandlers)
             App.Renderer.Resize -= handler;

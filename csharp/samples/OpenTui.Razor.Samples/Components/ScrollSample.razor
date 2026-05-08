@@ -28,7 +28,7 @@
     private int _contentHeight;
     private int _nextIndex = 1;
     private bool _showVerticalScrollbar = true;
-    private bool _showHorizontalScrollbar;
+    private bool _showHorizontalScrollbar = true;
 
     private int ContentHeight => _contentHeight;
     private string Status => _scrollBox == null ? "Preparing scroll sample..." : BuildStatus();

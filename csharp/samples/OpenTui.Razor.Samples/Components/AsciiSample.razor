@@ -2,23 +2,31 @@
 
 <Box Width="100%" Height="100%" BackgroundColor="#0f172a" PaddingTop="1" PaddingLeft="2" PaddingRight="2">
     <Box Width="100%" Height="100%" Border="true" BorderColor="#f97316" Title=" ASCII Font Sample " BackgroundColor="#0f172a">
-        <AsciiFont Width="100" Height="4" LayoutPosition="absolute" Left="3" Top="3" Text="@TextValue" Font="@CurrentFont" Color="#fb7185" />
+        <AsciiFont @ref="_asciiFont" Width="100" Height="4" LayoutPosition="absolute" Left="3" Top="3" Text="@TextValue" Font="@CurrentFont" Color="#fb7185" BackgroundColor="#0f172a" SelectionBg="#334155" SelectionFg="#ffffff" />
         <Text Content="@Status" Fg="#e2e8f0" LayoutPosition="absolute" Left="3" Top="10" Width="90" Height="2" />
-        <Text Content="Use left/right to change font. Press q or Esc to exit." Fg="#94a3b8" LayoutPosition="absolute" Left="3" Top="14" Width="54" Height="1" />
+        <Text Content="@SelectionStatus" Fg="#7dd3fc" LayoutPosition="absolute" Left="3" Top="12" Width="90" Height="1" />
+        <Text Content="Use left/right to change font. Drag over ASCII text to select. Press C to clear, q/Esc to exit." Fg="#94a3b8" LayoutPosition="absolute" Left="3" Top="14" Width="54" Height="1" />
     </Box>
 </Box>
 
 @code {
     private static readonly IReadOnlyList<string> Fonts = ["block", "tiny", "shade", "slick"];
+    private AsciiFont? _asciiFont;
     private int _fontIndex;
+    private int _selectionStart;
+    private bool _dragging;
     private string TextValue { get; set; } = "OPEN TUI";
     private string CurrentFont => Fonts[_fontIndex];
     private string Status => $"Font: {CurrentFont} | Supported: {string.Join(", ", Fonts)}";
+    private string SelectionStatus => _asciiFont?.Renderable.GetSelectedText() is { Length: > 0 } selected
+        ? $"Selected text: \"{selected}\""
+        : "No ASCII text selected";
 
     protected override void OnInitialized()
     {
         SetBackground("#0f172a");
         RegisterExitKeys();
+        RegisterMouse(HandleMouse);
         RegisterKeypress(key =>
         {
             if (key.Name == "left")
@@ -33,6 +41,38 @@
                 _fontIndex = (_fontIndex + 1) % Fonts.Count;
                 InvokeAsync(StateHasChanged);
             }
+            else if (key.Name == "c")
+            {
+                key.PreventDefault();
+                _asciiFont?.Renderable.ClearSelection();
+                InvokeAsync(StateHasChanged);
+            }
         });
+    }
+
+    private void HandleMouse(MouseEvent mouse)
+    {
+        var renderable = _asciiFont?.Renderable;
+        if (renderable == null || mouse.Button != MouseButton.Left)
+            return;
+
+        if (mouse.Pressed)
+        {
+            if (!_dragging)
+            {
+                if (!renderable.ContainsPoint(mouse.X, mouse.Y))
+                    return;
+
+                _dragging = true;
+                _selectionStart = renderable.ColumnToTextIndex(mouse.X);
+            }
+
+            renderable.SetSelection(_selectionStart, renderable.ColumnToTextIndex(mouse.X));
+            InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            _dragging = false;
+        }
     }
 }

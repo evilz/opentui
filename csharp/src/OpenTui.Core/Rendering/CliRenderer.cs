@@ -155,6 +155,12 @@ public class CliRenderer : IDisposable
             }
             else if (mouse.Pressed && mouse.Button == MouseButton.Left)
             {
+                if (CurrentFocus is OpenTui.Core.Renderables.ScrollBoxRenderable { IsDraggingScrollbar: true } scrollBox)
+                {
+                    scrollBox.HandleMouse(mouse);
+                    return;
+                }
+
                 var target = HitTest(mouse.X, mouse.Y);
                 if (target != null)
                 {
@@ -587,6 +593,9 @@ public class CliRenderer : IDisposable
         int nw = node.ComputedWidth, nh = node.ComputedHeight;
         if (nw <= 0 || nh <= 0) return null;
         if (x < nx || x >= nx + nw || y < ny || y >= ny + nh) return null;
+
+        if (node is OpenTui.Core.Renderables.ScrollBoxRenderable scrollBox && scrollBox.IsOnScrollbar(x, y))
+            return scrollBox;
 
         // Check children in reverse z-order (topmost first)
         foreach (var child in node.GetChildren().OrderByDescending(c => c.ZIndex))

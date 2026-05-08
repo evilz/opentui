@@ -23,6 +23,8 @@ public class ScrollBoxRenderable : Renderable
     private bool _draggingVertical;
     private bool _draggingHorizontal;
 
+    internal bool IsDraggingScrollbar => _draggingVertical || _draggingHorizontal;
+
     public ScrollBoxRenderable(CliRenderer? renderer) : base(renderer)
     {
         Focusable = true;
@@ -178,6 +180,8 @@ public class ScrollBoxRenderable : Renderable
             buffer.SetCell(sbX, ScreenY + inset + thumbY, '█', thumbFg, trackBg);
         }
     }
+
+    internal bool IsOnScrollbar(int x, int y) => IsOnVerticalScrollbar(x, y) || IsOnHorizontalScrollbar(x, y);
 
     private bool IsOnVerticalScrollbar(int x, int y)
     {

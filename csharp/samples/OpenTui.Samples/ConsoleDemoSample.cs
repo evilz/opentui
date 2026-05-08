@@ -14,8 +14,7 @@ internal static class ConsoleDemoSample
 
         var root = renderer.Root;
 
-        var overlay = new ConsoleOverlay(renderer);
-        root.Add(overlay);
+        var overlay = new ConsoleOverlay(renderer) { ZIndex = 1000 };
 
         var box = new BoxRenderable(renderer, new BoxOptions
         {
@@ -29,6 +28,7 @@ internal static class ConsoleDemoSample
         box.SetWidth("100%");
         box.SetHeight("100%");
         root.Add(box);
+        root.Add(overlay);
 
         var text = new TextRenderable(renderer, new TextOptions
         {

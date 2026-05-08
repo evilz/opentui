@@ -29,7 +29,7 @@ internal static class FrameBufferSample
 
         var fb = new FrameBufferRenderable(renderer, 120, 40);
         fb.SetWidth("100%");
-        fb.SetHeight(20);
+        fb.FlexGrow = 1;
         box.Add(fb);
 
         float time = 0;
