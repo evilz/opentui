@@ -44,8 +44,10 @@ csharp/
     Syntax/                  # SyntaxStyle, StyleDefinition
     Events/                  # EventEmitter
     Plugins/                 # IPlugin, PluginRegistry
+  src/OpenTui.Razor/         # Razor host + component wrappers for renderables
   tests/OpenTui.Tests/       # xUnit test project (115 tests)
   samples/OpenTui.Samples/   # Sample console applications
+  samples/OpenTui.Razor.Samples/ # Razor-hosted sample console applications
 ```
 
 ## Build & Test
@@ -66,6 +68,9 @@ dotnet run --project samples/OpenTui.Samples -- styled   # text attributes
 dotnet run --project samples/OpenTui.Samples -- editor   # edit buffer demo
 dotnet run --project samples/OpenTui.Samples -- scroll   # scrolling content
 dotnet run --project samples/OpenTui.Samples -- input    # keyboard input
+dotnet run --project samples/OpenTui.Razor.Samples -- layout   # Razor-hosted layout demo
+dotnet run --project samples/OpenTui.Razor.Samples -- editor   # Razor-hosted editor demo
+dotnet run --project samples/OpenTui.Razor.Samples -- console  # Razor-hosted overlay demo
 ```
 
 ## Key Types

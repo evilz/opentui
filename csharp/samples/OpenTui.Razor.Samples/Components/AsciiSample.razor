@@ -1,0 +1,38 @@
+@inherits SampleComponentBase
+
+<Box Width="100%" Height="100%" BackgroundColor="#0f172a" PaddingTop="1" PaddingLeft="2" PaddingRight="2">
+    <Box Width="100%" Height="100%" Border="true" BorderColor="#f97316" Title=" ASCII Font Sample " BackgroundColor="#0f172a">
+        <AsciiFont Width="100" Height="4" LayoutPosition="absolute" Left="3" Top="3" Text="@TextValue" Font="@CurrentFont" Color="#fb7185" />
+        <Text Content="@Status" Fg="#e2e8f0" LayoutPosition="absolute" Left="3" Top="10" Width="90" Height="2" />
+        <Text Content="Use left/right to change font. Press q or Esc to exit." Fg="#94a3b8" LayoutPosition="absolute" Left="3" Top="14" Width="54" Height="1" />
+    </Box>
+</Box>
+
+@code {
+    private static readonly IReadOnlyList<string> Fonts = ["block", "tiny", "shade", "slick"];
+    private int _fontIndex;
+    private string TextValue { get; set; } = "OPEN TUI";
+    private string CurrentFont => Fonts[_fontIndex];
+    private string Status => $"Font: {CurrentFont} | Supported: {string.Join(", ", Fonts)}";
+
+    protected override void OnInitialized()
+    {
+        SetBackground("#0f172a");
+        RegisterExitKeys();
+        RegisterKeypress(key =>
+        {
+            if (key.Name == "left")
+            {
+                key.PreventDefault();
+                _fontIndex = (_fontIndex - 1 + Fonts.Count) % Fonts.Count;
+                InvokeAsync(StateHasChanged);
+            }
+            else if (key.Name == "right")
+            {
+                key.PreventDefault();
+                _fontIndex = (_fontIndex + 1) % Fonts.Count;
+                InvokeAsync(StateHasChanged);
+            }
+        });
+    }
+}
