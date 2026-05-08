@@ -160,7 +160,7 @@ public class ScrollBoxRenderable : Renderable
     private void RenderVerticalScrollbar(RenderBuffer buffer)
     {
         int inset = Border ? 1 : 0;
-        int sbX = Border ? ScreenX + ComputedWidth - 1 : ScreenX + ComputedWidth - 1 - inset;
+        int sbX = ScreenX + ComputedWidth - 1 - inset;
         int h = GetViewportHeight();
         if (h <= 0) return;
 
@@ -187,7 +187,7 @@ public class ScrollBoxRenderable : Renderable
     {
         if (!ShowVerticalScrollbar) return false;
         int inset = Border ? 1 : 0;
-        int sbX = Border ? ScreenX + ComputedWidth - 1 : ScreenX + ComputedWidth - 1 - inset;
+        int sbX = ScreenX + ComputedWidth - 1 - inset;
         int top = ScreenY + inset;
         int bottom = top + GetViewportHeight();
         return x == sbX && y >= top && y < bottom;
@@ -197,7 +197,7 @@ public class ScrollBoxRenderable : Renderable
     {
         if (!ShowHorizontalScrollbar) return false;
         int inset = Border ? 1 : 0;
-        int sbY = Border ? ScreenY + ComputedHeight - 1 : ScreenY + ComputedHeight - 1 - inset;
+        int sbY = ScreenY + ComputedHeight - 1 - inset;
         int left = ScreenX + inset;
         int right = left + GetViewportWidth();
         return y == sbY && x >= left && x < right;
@@ -234,7 +234,7 @@ public class ScrollBoxRenderable : Renderable
     private void RenderHorizontalScrollbar(RenderBuffer buffer)
     {
         int inset = Border ? 1 : 0;
-        int sbY = Border ? ScreenY + ComputedHeight - 1 : ScreenY + ComputedHeight - 1 - inset;
+        int sbY = ScreenY + ComputedHeight - 1 - inset;
         int w = GetViewportWidth();
         if (w <= 0) return;
 
@@ -269,14 +269,14 @@ public class ScrollBoxRenderable : Renderable
     private int GetViewportWidth()
     {
         int inset = Border ? 2 : 0;
-        int scrollbar = ShowVerticalScrollbar && !Border ? 1 : 0;
+        int scrollbar = ShowVerticalScrollbar ? 1 : 0;
         return Math.Max(0, ComputedWidth - inset - scrollbar);
     }
 
     private int GetViewportHeight()
     {
         int inset = Border ? 2 : 0;
-        int scrollbar = ShowHorizontalScrollbar && !Border ? 1 : 0;
+        int scrollbar = ShowHorizontalScrollbar ? 1 : 0;
         return Math.Max(0, ComputedHeight - inset - scrollbar);
     }
 }
