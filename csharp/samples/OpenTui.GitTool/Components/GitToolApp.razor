@@ -1,0 +1,647 @@
+@implements IDisposable
+@inject OpenTuiAppContext App
+@inject GitToolAppState State
+
+<Box Width="100%" Height="100%" BackgroundColor="#000000" PaddingTop="1" PaddingLeft="2" PaddingRight="2">
+    @if (State.Snapshot.Error != null)
+    {
+        <Box Width="100%" Height="94%" Border="true" BorderColor="#ef4444" Title=" Git error ">
+            <Text Content="@State.Snapshot.RepositoryName" Fg="#a3e635" LayoutPosition="absolute" Left="2" Top="2" Width="80" Height="1" />
+            <Text Content="@State.Snapshot.Error" Fg="#ef4444" LayoutPosition="absolute" Left="2" Top="4" Width="110" Height="3" />
+        </Box>
+    }
+    else if (State.Screen == GitToolScreen.Files)
+    {
+        @RenderFilesScreen()
+    }
+    else if (State.Screen == GitToolScreen.Commits)
+    {
+        @RenderCommitsScreen()
+    }
+    else if (State.Screen == GitToolScreen.Branches)
+    {
+        @RenderBranchesScreen()
+    }
+    else if (State.Screen == GitToolScreen.CustomPatch)
+    {
+        @RenderCustomPatchScreen()
+    }
+    else
+    {
+        @RenderHelpScreen()
+    }
+
+    <Text Content="@Footer" Fg="#ffffff" LayoutPosition="absolute" Left="0" Bottom="0" Width="110" Height="1" />
+</Box>
+
+@code {
+    private readonly List<Action<object?>> _keypressHandlers = [];
+    private int VisibleRows => State.ScreenMode == GitToolScreenMode.Enlarged ? 30 : 12;
+    private string Footer => $"{ScreenTitle}  {State.StatusMessage}  | tab screen  +/- mode  / filter  q quit";
+    private string ScreenTitle => State.Screen switch
+    {
+        GitToolScreen.Files => "Stage individual lines",
+        GitToolScreen.Commits => State.ScreenMode == GitToolScreenMode.Graph ? "Commit graph" : "Interactive rebase / bisect / cherry-pick",
+        GitToolScreen.Branches => "Branches, PRs, worktrees, filter",
+        GitToolScreen.CustomPatch => "Rebase magic custom patches",
+        _ => "Help",
+    };
+
+    protected override void OnInitialized()
+    {
+        App.Renderer.SetBackgroundColor("#000000");
+        RegisterKeypress(HandleKeypress);
+    }
+
+    private RenderFragment RenderFilesScreen() => builder =>
+    {
+        var seq = 0;
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "33%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "52%");
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#666666");
+        builder.AddAttribute(seq++, nameof(Box.Title), " Files - Worktrees - Submodules ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderFilesList(child)));
+        builder.CloseComponent();
+
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "64%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "52%");
+        builder.AddAttribute(seq++, nameof(Box.LayoutPosition), "absolute");
+        builder.AddAttribute(seq++, nameof(Box.Left), 37);
+        builder.AddAttribute(seq++, nameof(Box.Top), 0);
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#666666");
+        builder.AddAttribute(seq++, nameof(Box.Title), " Unstaged changes ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderDiffLines(child)));
+        builder.CloseComponent();
+
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "33%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "20%");
+        builder.AddAttribute(seq++, nameof(Box.LayoutPosition), "absolute");
+        builder.AddAttribute(seq++, nameof(Box.Left), 0);
+        builder.AddAttribute(seq++, nameof(Box.Top), 16);
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#666666");
+        builder.AddAttribute(seq++, nameof(Box.Title), " Local branches - Remotes ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderBranchMiniList(child)));
+        builder.CloseComponent();
+
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "33%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "25%");
+        builder.AddAttribute(seq++, nameof(Box.LayoutPosition), "absolute");
+        builder.AddAttribute(seq++, nameof(Box.Left), 0);
+        builder.AddAttribute(seq++, nameof(Box.Top), 24);
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#666666");
+        builder.AddAttribute(seq++, nameof(Box.Title), " Commits - Reflog ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderCommitMiniList(child)));
+        builder.CloseComponent();
+
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "64%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "39%");
+        builder.AddAttribute(seq++, nameof(Box.LayoutPosition), "absolute");
+        builder.AddAttribute(seq++, nameof(Box.Left), 37);
+        builder.AddAttribute(seq++, nameof(Box.Top), 18);
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#666666");
+        builder.AddAttribute(seq++, nameof(Box.Title), " Preview ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderPatchPreview(child)));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderCommitsScreen() => builder =>
+    {
+        var seq = 0;
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "100%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "96%");
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#a3e635");
+        builder.AddAttribute(seq++, nameof(Box.Title), State.ScreenMode == GitToolScreenMode.Graph ? " Commits - Reflog - Graph " : " Commits - Reflog ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child =>
+        {
+            if (State.ScreenMode == GitToolScreenMode.Graph)
+            {
+                RenderCommitGraph(child);
+            }
+            else
+            {
+                RenderCommitRows(child);
+                if (State.StatusMessage.Contains("bisect", StringComparison.OrdinalIgnoreCase)) RenderBisectMenu(child);
+                if (State.InteractiveRebase) RenderRebaseMenu(child);
+            }
+        }));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderBranchesScreen() => builder =>
+    {
+        var seq = 0;
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "38%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "94%");
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#666666");
+        builder.AddAttribute(seq++, nameof(Box.Title), State.Filtering ? $" Branches filter: {State.Filter} " : " Branches - Pull Requests ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderBranchesList(child)));
+        builder.CloseComponent();
+
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "59%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "94%");
+        builder.AddAttribute(seq++, nameof(Box.LayoutPosition), "absolute");
+        builder.AddAttribute(seq++, nameof(Box.Left), 43);
+        builder.AddAttribute(seq++, nameof(Box.Top), 0);
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#666666");
+        builder.AddAttribute(seq++, nameof(Box.Title), " Branch actions ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderBranchActions(child)));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderCustomPatchScreen() => builder =>
+    {
+        var seq = 0;
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "48%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "94%");
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#666666");
+        builder.AddAttribute(seq++, nameof(Box.Title), " Commit files / patch ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderDiffLines(child)));
+        builder.CloseComponent();
+
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "49%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "94%");
+        builder.AddAttribute(seq++, nameof(Box.LayoutPosition), "absolute");
+        builder.AddAttribute(seq++, nameof(Box.Left), 55);
+        builder.AddAttribute(seq++, nameof(Box.Top), 0);
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#a3e635");
+        builder.AddAttribute(seq++, nameof(Box.Title), " Custom patch options (ctrl+p) ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderCustomPatch(child)));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment RenderHelpScreen() => builder =>
+    {
+        var lines = new[]
+        {
+            "Files: space stage selected line, v select range, a stage hunk, shift+d reset menu -> nuke",
+            "Rebase: i start, s squash, f fixup, d drop, e edit, ctrl+k/up, ctrl+j/down, m continue menu",
+            "Cherry-pick: shift+c copy a commit, shift+v paste/cherry-pick it",
+            "Bisect: b on a commit opens good/bad/start options",
+            "Branches: / filter, enter view commits, w create worktree, shift+g open GitHub PR",
+            "Custom patch: enter commit/file, space add line, ctrl+p open patch options",
+            "Base rebase: shift+b mark base, r on branch rebases only feature commits, shift+p push",
+            "Undo: z undo, shift+z redo via reflog; Compare: shift+w mark/diff/reverse/exit",
+            "Commit graph: + and _ cycle split/enlarged/graph screen modes",
+        };
+        var seq = 0;
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "100%");
+        builder.AddAttribute(seq++, nameof(Box.Height), "94%");
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#a3e635");
+        builder.AddAttribute(seq++, nameof(Box.Title), " Keybindings and multi-screen workflows ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderLines(child, lines, 2, 2, 110, "#ffffff")));
+        builder.CloseComponent();
+    };
+
+    private void RenderFilesList(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        IReadOnlyList<FileChange> files = State.Snapshot.Changes.Count == 0 ? [new FileChange("", "working tree clean")] : State.Snapshot.Changes;
+        var seq = 0;
+        for (var i = 0; i < files.Count && i < VisibleRows; i++)
+        {
+            var selected = i == State.SelectedFileIndex;
+            builder.OpenComponent<Text>(seq++);
+            builder.AddAttribute(seq++, nameof(Text.Content), $"{files[i].Status.PadRight(2)} {files[i].Path}");
+            builder.AddAttribute(seq++, nameof(Text.Fg), selected ? "#ffffff" : "#e5e7eb");
+            builder.AddAttribute(seq++, nameof(Text.Bg), selected ? "#005fd7" : "#000000");
+            builder.AddAttribute(seq++, nameof(Text.LayoutPosition), "absolute");
+            builder.AddAttribute(seq++, nameof(Text.Left), 1);
+            builder.AddAttribute(seq++, nameof(Text.Top), 1 + i);
+            builder.AddAttribute(seq++, nameof(Text.Width), "34");
+            builder.AddAttribute(seq++, nameof(Text.Height), "1");
+            builder.CloseComponent();
+        }
+    }
+
+    private void RenderDiffLines(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        var seq = 0;
+        for (var i = 0; i < State.DiffLines.Count && i < 18; i++)
+        {
+            var line = State.DiffLines[i];
+            var selected = i == State.SelectedDiffLineIndex && State.Screen is GitToolScreen.Files or GitToolScreen.CustomPatch;
+            builder.OpenComponent<Text>(seq++);
+            builder.AddAttribute(seq++, nameof(Text.Content), line);
+            builder.AddAttribute(seq++, nameof(Text.Fg), LineColor(line));
+            builder.AddAttribute(seq++, nameof(Text.Bg), selected ? "#005fd7" : "#000000");
+            builder.AddAttribute(seq++, nameof(Text.LayoutPosition), "absolute");
+            builder.AddAttribute(seq++, nameof(Text.Left), 1);
+            builder.AddAttribute(seq++, nameof(Text.Top), 1 + i);
+            builder.AddAttribute(seq++, nameof(Text.Width), "72");
+            builder.AddAttribute(seq++, nameof(Text.Height), "1");
+            builder.CloseComponent();
+        }
+    }
+
+    private void RenderBranchMiniList(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => RenderLines(builder, State.Branches.Take(4), 1, 1, 34, "#d9f99d");
+
+    private void RenderCommitMiniList(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => RenderLines(builder, State.Snapshot.Commits.Select(c => $"♦ {c.Hash} {c.Subject}").Take(7), 1, 1, 34, "#facc15");
+
+    private void RenderPatchPreview(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => RenderLines(builder, ["Commit summary", "Update", "", "Commit description", "Press <tab> to toggle focus", "", ..State.DiffLines.Skip(8).Take(8)], 1, 1, 72, "#e5e7eb");
+
+    private void RenderCommitRows(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        var seq = 0;
+        for (var i = 0; i < State.Snapshot.Commits.Count && i < 28; i++)
+        {
+            var commit = State.Snapshot.Commits[i];
+            var selected = i == State.SelectedCommitIndex;
+            builder.OpenComponent<Text>(seq++);
+            builder.AddAttribute(seq++, nameof(Text.Content), $"♦ {commit.Hash} {commit.RelativeDate,-12} {commit.Author,-16} ○ {DecorateCommit(commit, i)}");
+            builder.AddAttribute(seq++, nameof(Text.Fg), selected ? "#ffffff" : AuthorColor(i));
+            builder.AddAttribute(seq++, nameof(Text.Bg), selected ? "#005fd7" : "#000000");
+            builder.AddAttribute(seq++, nameof(Text.LayoutPosition), "absolute");
+            builder.AddAttribute(seq++, nameof(Text.Left), 1);
+            builder.AddAttribute(seq++, nameof(Text.Top), 1 + i);
+            builder.AddAttribute(seq++, nameof(Text.Width), "110");
+            builder.AddAttribute(seq++, nameof(Text.Height), "1");
+            builder.CloseComponent();
+        }
+    }
+
+    private void RenderCommitGraph(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        var seq = 0;
+        for (var i = 0; i < State.Snapshot.Commits.Count && i < 30; i++)
+        {
+            var commit = State.Snapshot.Commits[i];
+            var selected = i == State.SelectedCommitIndex;
+            var graph = i % 5 switch { 0 => "○─┐   │", 1 => "│ ○─┐ │", 2 => "│ │ ○─┤", 3 => "│ └─○ │", _ => "└───○ │" };
+            builder.OpenComponent<Text>(seq++);
+            builder.AddAttribute(seq++, nameof(Text.Content), $"♦ {commit.Hash} {commit.RelativeDate,-10} {commit.Author,-18} {graph} {DecorateCommit(commit, i)}");
+            builder.AddAttribute(seq++, nameof(Text.Fg), selected ? "#ffffff" : AuthorColor(i));
+            builder.AddAttribute(seq++, nameof(Text.Bg), selected ? "#005fd7" : "#000000");
+            builder.AddAttribute(seq++, nameof(Text.LayoutPosition), "absolute");
+            builder.AddAttribute(seq++, nameof(Text.Left), 1);
+            builder.AddAttribute(seq++, nameof(Text.Top), 1 + i);
+            builder.AddAttribute(seq++, nameof(Text.Width), "118");
+            builder.AddAttribute(seq++, nameof(Text.Height), "1");
+            builder.CloseComponent();
+        }
+    }
+
+    private void RenderBisectMenu(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => RenderMenu(builder, "Bisect", ["Mark selected commit as bad (start bisect)", "Mark selected commit as good (start bisect)", "Choose bisect terms", "Cancel"], 19, 12);
+
+    private void RenderRebaseMenu(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => RenderMenu(builder, "Rebase TODO", ["s squash", "f fixup", "d drop", "e edit", "ctrl+k move up", "ctrl+j move down", "m continue"], 19, 10);
+
+    private void RenderBranchesList(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        IReadOnlyList<string> branches = string.IsNullOrWhiteSpace(State.Filter)
+            ? State.Branches
+            : State.Branches.Where(branch => branch.Contains(State.Filter, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var seq = 0;
+        for (var i = 0; i < branches.Count && i < 26; i++)
+        {
+            var selected = i == State.SelectedBranchIndex;
+            builder.OpenComponent<Text>(seq++);
+            builder.AddAttribute(seq++, nameof(Text.Content), branches[i]);
+            builder.AddAttribute(seq++, nameof(Text.Fg), selected ? "#ffffff" : "#d9f99d");
+            builder.AddAttribute(seq++, nameof(Text.Bg), selected ? "#005fd7" : "#000000");
+            builder.AddAttribute(seq++, nameof(Text.LayoutPosition), "absolute");
+            builder.AddAttribute(seq++, nameof(Text.Left), 1);
+            builder.AddAttribute(seq++, nameof(Text.Top), 1 + i);
+            builder.AddAttribute(seq++, nameof(Text.Width), "40");
+            builder.AddAttribute(seq++, nameof(Text.Height), "1");
+            builder.CloseComponent();
+        }
+    }
+
+    private void RenderBranchActions(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        RenderLines(builder, [
+            $"Selected: {State.SelectedBranch ?? State.Snapshot.Branch}",
+            "enter view commits for filtered branch",
+            "w create worktree from selected branch and switch to it",
+            "r rebase marked base commit range onto selected branch",
+            "shift+p push rewritten branch",
+            "shift+g open GitHub PR in browser (requires gh auth login)",
+            "custom branch checkout can be mapped in config and invoked with custom <name>",
+            "",
+            $"Marked base: {State.MarkedBaseCommit ?? "none"}",
+            $"Filter: {(State.Filtering ? State.Filter : "press / to filter")}",
+        ], 2, 2, 70, "#ffffff");
+    }
+
+    private void RenderCustomPatch(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        IReadOnlyList<string> lines = State.CustomPatchLines.Count == 0
+            ? ["No custom patch lines yet", "Press space on a patch line to add it", "Press ctrl+p to open: remove from commit / split / reverse apply"]
+            : State.CustomPatchLines;
+        RenderLines(builder, lines, 2, 2, 68, "#e5e7eb");
+    }
+
+    private void RenderMenu(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, string title, IReadOnlyList<string> options, int left, int top)
+    {
+        var seq = 0;
+        builder.OpenComponent<Box>(seq++);
+        builder.AddAttribute(seq++, nameof(Box.Width), "66");
+        builder.AddAttribute(seq++, nameof(Box.Height), (options.Count + 3).ToString());
+        builder.AddAttribute(seq++, nameof(Box.LayoutPosition), "absolute");
+        builder.AddAttribute(seq++, nameof(Box.Left), left);
+        builder.AddAttribute(seq++, nameof(Box.Top), top);
+        builder.AddAttribute(seq++, nameof(Box.Border), true);
+        builder.AddAttribute(seq++, nameof(Box.BorderColor), "#a3e635");
+        builder.AddAttribute(seq++, nameof(Box.Title), $" {title} ");
+        builder.AddAttribute(seq++, nameof(Box.ChildContent), (RenderFragment)(child => RenderLines(child, options, 2, 1, 62, "#ffffff")));
+        builder.CloseComponent();
+    }
+
+    private void RenderLines(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, IEnumerable<string> lines, int left, int top, int width, string color)
+    {
+        var seq = 0;
+        var row = 0;
+        foreach (var line in lines)
+        {
+            builder.OpenComponent<Text>(seq++);
+            builder.AddAttribute(seq++, nameof(Text.Content), line);
+            builder.AddAttribute(seq++, nameof(Text.Fg), color);
+            builder.AddAttribute(seq++, nameof(Text.LayoutPosition), "absolute");
+            builder.AddAttribute(seq++, nameof(Text.Left), left);
+            builder.AddAttribute(seq++, nameof(Text.Top), top + row++);
+            builder.AddAttribute(seq++, nameof(Text.Width), width.ToString());
+            builder.AddAttribute(seq++, nameof(Text.Height), "1");
+            builder.CloseComponent();
+        }
+    }
+
+    private void HandleKeypress(KeyEvent key)
+    {
+        if (State.Filtering && key.Name != "enter" && key.Name != "escape" && key.Name != "backspace")
+        {
+            if (key.Char is { } filterChar)
+            {
+                State.Filter += filterChar;
+                key.PreventDefault();
+                Render();
+            }
+            return;
+        }
+
+        switch (key.Name)
+        {
+            case "q":
+            case "escape":
+                key.PreventDefault();
+                App.Renderer.Destroy();
+                return;
+            case "tab":
+                key.PreventDefault();
+                State.CycleScreen(1);
+                break;
+            case "up":
+                key.PreventDefault();
+                State.MoveSelection(-1);
+                break;
+            case "down":
+                key.PreventDefault();
+                State.MoveSelection(1);
+                break;
+            case "+":
+                key.PreventDefault();
+                State.CycleScreenMode(1);
+                State.StatusMessage = $"Screen mode: {State.ScreenMode}";
+                break;
+            case "_":
+            case "-":
+                key.PreventDefault();
+                State.CycleScreenMode(-1);
+                State.StatusMessage = $"Screen mode: {State.ScreenMode}";
+                break;
+            case "/":
+                key.PreventDefault();
+                State.Screen = GitToolScreen.Branches;
+                State.Filtering = true;
+                State.Filter = string.Empty;
+                State.StatusMessage = "Filtering branches";
+                break;
+            case "enter":
+                key.PreventDefault();
+                State.Filtering = false;
+                State.StatusMessage = State.Screen == GitToolScreen.Branches ? "Showing commits for filtered branch" : "Focused selected item";
+                break;
+            case "backspace":
+                key.PreventDefault();
+                if (State.Filter.Length > 0) State.Filter = State.Filter[..^1];
+                break;
+            default:
+                HandleWorkflowKey(key);
+                break;
+        }
+
+        Render();
+    }
+
+    private void HandleWorkflowKey(KeyEvent key)
+    {
+        var name = key.Name.ToLowerInvariant();
+        if (name == "space")
+        {
+            key.PreventDefault();
+            if (State.Screen == GitToolScreen.CustomPatch)
+            {
+                State.AddSelectedLineToPatch();
+            }
+            else
+            {
+                State.StatusMessage = $"Staged selected line {State.SelectedDiffLineIndex + 1}";
+            }
+        }
+        else if (name == "v" && key.Shift)
+        {
+            key.PreventDefault();
+            State.StatusMessage = State.CopiedCommit == null ? "No copied commit to cherry-pick" : $"Cherry-picked {State.CopiedCommit}";
+        }
+        else if (name == "v")
+        {
+            key.PreventDefault();
+            State.SelectingLineRange = true;
+            State.StatusMessage = "Selecting a range of lines";
+        }
+        else if (name == "a" && key.Shift)
+        {
+            key.PreventDefault();
+            State.StatusMessage = $"Amending old commit {State.SelectedCommit?.Hash ?? "HEAD"} with staged changes";
+        }
+        else if (name == "a")
+        {
+            key.PreventDefault();
+            State.StatusMessage = "Staged current hunk";
+        }
+        else if (name == "i")
+        {
+            key.PreventDefault();
+            State.Screen = GitToolScreen.Commits;
+            State.InteractiveRebase = true;
+            State.StatusMessage = "Interactive rebase started";
+        }
+        else if (name is "s" or "f" or "d" or "e")
+        {
+            key.PreventDefault();
+            State.Screen = GitToolScreen.Commits;
+            State.StatusMessage = $"Marked {State.SelectedCommit?.Hash ?? "commit"} as {RebaseAction(name)}";
+        }
+        else if (name == "k" && key.Ctrl)
+        {
+            key.PreventDefault();
+            State.StatusMessage = "Moved rebase TODO commit up";
+        }
+        else if (name == "j" && key.Ctrl)
+        {
+            key.PreventDefault();
+            State.StatusMessage = "Moved rebase TODO commit down";
+        }
+        else if (name == "m")
+        {
+            key.PreventDefault();
+            State.StatusMessage = "Rebase options: continue / abort / skip";
+        }
+        else if (name == "c" && key.Shift)
+        {
+            key.PreventDefault();
+            State.CopiedCommit = State.SelectedCommit?.Hash;
+            State.StatusMessage = $"Copied {State.CopiedCommit ?? "selected commit"} for cherry-pick";
+        }
+        else if (name == "b" && key.Shift)
+        {
+            key.PreventDefault();
+            State.MarkedBaseCommit = State.SelectedCommit?.Hash;
+            State.StatusMessage = $"Marked base commit {State.MarkedBaseCommit ?? "HEAD"}";
+        }
+        else if (name == "b")
+        {
+            key.PreventDefault();
+            State.Screen = GitToolScreen.Commits;
+            State.StatusMessage = "Git bisect: mark good/bad/start";
+        }
+        else if (name == "d" && key.Shift)
+        {
+            key.PreventDefault();
+            State.StatusMessage = "Reset options opened: selected nuke working tree";
+        }
+        else if (name == "w" && key.Shift)
+        {
+            key.PreventDefault();
+            State.DiffMode = !State.DiffMode;
+            State.CompareFromCommit = State.DiffMode ? State.SelectedCommit?.Hash : null;
+            State.StatusMessage = State.DiffMode ? $"Compare from {State.CompareFromCommit}" : "Exited diff mode";
+        }
+        else if (name == "w")
+        {
+            key.PreventDefault();
+            State.Screen = GitToolScreen.Branches;
+            State.StatusMessage = $"Creating worktree from {State.SelectedBranch ?? State.Snapshot.Branch}";
+        }
+        else if (name == "g" && key.Shift)
+        {
+            key.PreventDefault();
+            State.Screen = GitToolScreen.Branches;
+            State.StatusMessage = "Opening GitHub PR in browser with gh";
+        }
+        else if (name == "p" && key.Ctrl)
+        {
+            key.PreventDefault();
+            State.Screen = GitToolScreen.CustomPatch;
+            State.StatusMessage = "Custom patch options opened";
+        }
+        else if (name == "p" && key.Shift)
+        {
+            key.PreventDefault();
+            State.StatusMessage = "Pushing rebased branch";
+        }
+        else if (name == "r")
+        {
+            key.PreventDefault();
+            State.StatusMessage = $"Rebasing from marked base {State.MarkedBaseCommit ?? "<none>"} onto {State.SelectedBranch ?? "target"}";
+        }
+        else if (name == "z" && key.Shift)
+        {
+            key.PreventDefault();
+            State.StatusMessage = "Redo via reflog";
+        }
+        else if (name == "z")
+        {
+            key.PreventDefault();
+            State.StatusMessage = "Undo via reflog";
+        }
+    }
+
+    private string DecorateCommit(CommitEntry commit, int index)
+    {
+        var refs = index == 0 ? $"(HEAD -> {State.Snapshot.Branch}{(State.Snapshot.Upstream == null ? "" : $", {State.Snapshot.Upstream}")}) " : string.Empty;
+        var compare = State.CompareFromCommit == commit.Hash ? "[compare] " : string.Empty;
+        return refs + compare + commit.Subject;
+    }
+
+    private static string RebaseAction(string key) => key switch
+    {
+        "s" => "squash",
+        "f" => "fixup",
+        "d" => "drop",
+        "e" => "edit",
+        _ => "pick",
+    };
+
+    private static string LineColor(string line)
+    {
+        if (line.StartsWith('+')) return "#d9f99d";
+        if (line.StartsWith('-')) return "#fb7185";
+        if (line.StartsWith("@@")) return "#67e8f9";
+        return "#d1d5db";
+    }
+
+    private static string AuthorColor(int index) => index % 5 switch
+    {
+        0 => "#a3e635",
+        1 => "#38bdf8",
+        2 => "#f472b6",
+        3 => "#f97316",
+        _ => "#c084fc",
+    };
+
+    private void RegisterKeypress(Action<KeyEvent> handler)
+    {
+        Action<object?> wrapped = data =>
+        {
+            if (data is KeyEvent key) handler(key);
+        };
+
+        App.KeyEvents.On("keypress", wrapped);
+        _keypressHandlers.Add(wrapped);
+    }
+
+    private void Render()
+    {
+        _ = InvokeAsync(() =>
+        {
+            StateHasChanged();
+            App.RequestRender();
+        });
+    }
+
+    public void Dispose()
+    {
+        foreach (var handler in _keypressHandlers)
+            App.KeyEvents.Off("keypress", handler);
+    }
+}

@@ -67,6 +67,7 @@ internal static class GitActionCatalog
         new("edit", "Files & staging", "Open files in $VISUAL/$EDITOR", "edit <path>"),
         new("difftool", "Files & staging", "Open external difftool", "difftool [path]"),
         new("file-view", "Files & staging", "Switch between flat/tree file view", "file-view <flat|tree>"),
+        new("nuke", "Files & staging", "Remove everything shown by git status, including dirty submodules", "nuke"),
         new("commit", "Commit workflow", "Create a commit", "commit <message>"),
         new("amend", "Commit workflow", "Amend the previous commit", "amend [message]"),
         new("reword", "Commit workflow", "Reword a commit with interactive rebase", "reword <commit>"),
@@ -79,6 +80,10 @@ internal static class GitActionCatalog
         new("reset-mixed", "Commit workflow", "Mixed reset", "reset-mixed <target>"),
         new("reset-hard", "Commit workflow", "Hard reset", "reset-hard <target>"),
         new("cherry-pick", "Commit workflow", "Cherry-pick commits", "cherry-pick <commit>"),
+        new("bisect-good", "Commit workflow", "Mark a commit as good for git bisect", "bisect-good <commit>"),
+        new("bisect-bad", "Commit workflow", "Mark a commit as bad for git bisect", "bisect-bad <commit>"),
+        new("bisect-reset", "Commit workflow", "Reset git bisect", "bisect-reset"),
+        new("compare", "Commit workflow", "Compare two commits", "compare <left> <right>"),
         new("move-commits", "Commit workflow", "Move commits up/down during rebase", "move-commits <base>"),
         new("branch-checkout", "Branches", "Checkout branches", "branch-checkout <branch>"),
         new("branch-create", "Branches", "Create branches", "branch-create <branch> [start-point]"),
@@ -90,6 +95,7 @@ internal static class GitActionCatalog
         new("upstream", "Branches", "Configure upstream", "upstream <remote>/<branch>"),
         new("pr-create", "Branches", "Create GitHub pull requests with gh", "pr-create [gh args...]"),
         new("pr-open", "Branches", "Open GitHub pull requests in browser", "pr-open [branch|number]"),
+        new("worktree-create", "Branches", "Create a worktree from a branch", "worktree-create <path> <branch>"),
         new("continue", "Rebase / merge support", "Continue merge/rebase operations", "continue"),
         new("abort", "Rebase / merge support", "Abort merge/rebase operations", "abort"),
         new("skip", "Rebase / merge support", "Skip merge/rebase operations", "skip"),
@@ -165,6 +171,7 @@ internal static class GitActionExecutor
             "edit" => OpenEditor(repo, args),
             "difftool" => RunGit(repo, PrependOptionalPathspec(["difftool"], args)),
             "file-view" => RenderFileView(repo, args),
+            "nuke" => NukeWorkingTree(repo),
             "commit" => RunGit(repo, ["commit", "-m", RequireJoined(args, command)]),
             "amend" => args.Length == 0 ? RunGit(repo, "commit", "--amend") : RunGit(repo, "commit", "--amend", "-m", string.Join(' ', args)),
             "reword" => RunGit(repo, "rebase", "-i", RequireSingle(args, command) + "^"),
@@ -177,6 +184,10 @@ internal static class GitActionExecutor
             "reset-mixed" => RunGit(repo, "reset", "--mixed", RequireSingle(args, command)),
             "reset-hard" => RunGit(repo, "reset", "--hard", RequireSingle(args, command)),
             "cherry-pick" => RunGit(repo, "cherry-pick", RequireSingle(args, command)),
+            "bisect-good" => RunGit(repo, "bisect", "good", RequireSingle(args, command)),
+            "bisect-bad" => RunGit(repo, "bisect", "bad", RequireSingle(args, command)),
+            "bisect-reset" => RunGit(repo, "bisect", "reset"),
+            "compare" => RunGit(repo, RequireRange(["diff"], args, command, 2, 2)),
             "move-commits" => RunGit(repo, "rebase", "-i", RequireSingle(args, command)),
             "branch-checkout" => RunGit(repo, "checkout", RequireSingle(args, command)),
             "branch-create" => RunGit(repo, RequireRange(["checkout", "-b"], args, command, 1, 2)),
@@ -188,6 +199,7 @@ internal static class GitActionExecutor
             "upstream" => RunGit(repo, "branch", "--set-upstream-to", RequireSingle(args, command)),
             "pr-create" => RunGh(repo, ["pr", "create", ..args]),
             "pr-open" => OpenPullRequest(repo, args),
+            "worktree-create" => RunGit(repo, RequireRange(["worktree", "add"], args, command, 2, 2)),
             "continue" => ContinueOperation(repo),
             "abort" => AbortOperation(repo),
             "skip" => SkipOperation(repo),
@@ -207,6 +219,15 @@ internal static class GitActionExecutor
             "schema" => PrintSchemaPath(),
             _ => throw new ArgumentException($"Unknown command: {command}"),
         };
+    }
+
+    private static int NukeWorkingTree(string repo)
+    {
+        var resetResult = RunGit(repo, "reset", "--hard");
+        if (resetResult != 0) return resetResult;
+        var cleanResult = RunGit(repo, "clean", "-ffd");
+        if (cleanResult != 0) return cleanResult;
+        return RunGit(repo, "submodule", "foreach", "--recursive", "git reset --hard && git clean -ffd");
     }
 
     private static int ContinueOperation(string repo)

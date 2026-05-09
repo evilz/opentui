@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace OpenTui.GitTool;
 
-internal sealed class GitToolConfig
+public sealed class GitToolConfig
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -68,7 +68,7 @@ internal sealed class GitToolConfig
     }
 }
 
-internal sealed class CustomCommand
+public sealed class CustomCommand
 {
     public string Command { get; set; } = "git";
     public List<string> Arguments { get; set; } = [];

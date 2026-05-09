@@ -72,7 +72,7 @@ dotnet run --project samples/OpenTui.Samples -- input    # keyboard input
 dotnet run --project samples/OpenTui.Razor.Samples -- layout   # Razor-hosted layout demo
 dotnet run --project samples/OpenTui.Razor.Samples -- editor   # Razor-hosted editor demo
 dotnet run --project samples/OpenTui.Razor.Samples -- console  # Razor-hosted overlay demo
-dotnet run --project samples/OpenTui.GitTool -- .          # Lazygit-inspired Git dashboard
+dotnet run --project samples/OpenTui.GitTool -- .          # Razor multi-screen Lazygit-inspired dashboard
 dotnet run --project samples/OpenTui.GitTool -- status     # Git action mode
 dotnet run --project samples/OpenTui.GitTool -- --help     # List supported Git commands
 ```
