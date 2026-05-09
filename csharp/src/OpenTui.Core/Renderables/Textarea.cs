@@ -24,7 +24,13 @@ public class TextareaRenderable : Renderable
     public string Value
     {
         get => _editBuffer.GetText();
-        set { _editBuffer.SetText(value); RequestRender(); }
+        set
+        {
+            if (value == _editBuffer.GetText()) return;
+            _editBuffer.SetText(value);
+            _scrollY = 0;
+            RequestRender();
+        }
     }
 
     public string? Placeholder { get; set; }

@@ -17,10 +17,11 @@ public sealed class ConsoleOverlay : RenderableComponentBase<OpenTui.Core.Consol
         renderable.Position = Position;
         renderable.MaxLines = MaxLines;
         renderable.MaxWidth = MaxWidth;
-        renderable.Clear();
+        renderable.ZIndex = ZIndex ?? 1000;
         if (Lines == null)
             return;
 
+        renderable.Clear();
         foreach (var line in Lines)
             renderable.AddLine(line);
     }

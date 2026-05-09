@@ -59,10 +59,19 @@ internal static class SliderSample
 
         var hint = new TextRenderable(renderer, new TextOptions
         {
-            Content = "Tab to switch sliders, ←→ to change value, q to quit",
+            Content = "Tab/click to focus sliders, drag/click or ←→ to change value, q to quit",
             Fg = "#888888"
         });
         box.Add(hint);
+
+        void UpdateValueText()
+        {
+            valueText.Content = $"Volume: {slider1.Value:0}  Brightness: {slider2.Value:0}";
+            renderer.RequestRender();
+        }
+
+        slider1.On("valueChanged", _ => UpdateValueText());
+        slider2.On("valueChanged", _ => UpdateValueText());
 
         int focusedSlider = 0;
         slider1.Focus();
@@ -75,11 +84,8 @@ internal static class SliderSample
                 focusedSlider = 1 - focusedSlider;
                 if (focusedSlider == 0) slider1.Focus();
                 else slider2.Focus();
-                renderer.RequestRender();
-                return;
+                UpdateValueText();
             }
-            valueText.Content = $"Volume: {slider1.Value}  Brightness: {slider2.Value}";
-            renderer.RequestRender();
         });
 
         renderer.Start();

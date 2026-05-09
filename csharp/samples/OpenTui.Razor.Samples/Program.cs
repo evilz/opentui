@@ -1,6 +1,9 @@
+using System.Text;
 using Microsoft.Extensions.Hosting;
 using OpenTui.Razor.Hosting;
 using OpenTui.Razor.Samples.Components;
+
+Console.OutputEncoding = Encoding.UTF8;
 
 var sample = args.Length > 0 ? args[0].ToLowerInvariant() : "layout";
 

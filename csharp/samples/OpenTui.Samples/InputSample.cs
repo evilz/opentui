@@ -43,6 +43,24 @@ internal static partial class InputSample
         foreach (var input in Inputs)
             renderer.Root.Add(input);
 
+        var focusIndicators = Inputs.Select((_, index) => new TextRenderable(renderer, new TextOptions
+        {
+            Content = index == 0 ? "▶" : " ",
+            Fg = "#00FFAA",
+            Bg = "#001122",
+            Width = 2,
+            Height = 1
+        })
+        {
+            Position = "absolute",
+            Left = 2,
+            Top = 2 + index * 4,
+            ZIndex = 100
+        }).ToList();
+
+        foreach (var indicator in focusIndicators)
+            parent.Add(indicator);
+
         var keyLegend = new TextRenderable(renderer, new TextOptions
         {
             Fg = "#AAAAAA",
@@ -97,6 +115,9 @@ Type: Enter text in focused field
 """;
 
             var active = GetActiveInput();
+            for (int i = 0; i < focusIndicators.Count; i++)
+                focusIndicators[i].Content = Inputs[i].Focused ? "▶" : " ";
+
             var passwordMasked = new string('*', passwordInput.Value.Length);
             status.Content =
                 $"""
@@ -106,7 +127,7 @@ Email: "{emailInput.Value}" ({FocusStatus(emailInput)})
 Password: "{passwordMasked}" ({FocusStatus(passwordInput)})
 Comment: "{commentInput.Value}" ({FocusStatus(commentInput)})
 
-Active Input: {GetInputName(active)}
+Active Input: ▶ {GetInputName(active)}
 
 Validation:
 Name: {(ValidateName(nameInput.Value) ? "OK Valid" : "X Invalid (min 2 chars)")}

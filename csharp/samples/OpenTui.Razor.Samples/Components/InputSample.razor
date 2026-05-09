@@ -2,6 +2,9 @@
 
 <Box Width="100%" Height="100%" BackgroundColor="#001122">
     <Text Content="Use Tab/Shift+Tab to change field focus. Press q or Esc to exit." Fg="#aaaaaa" LayoutPosition="absolute" Left="5" Top="1" Width="70" Height="1" />
+    <Text Content="@FocusIndicator(0)" Fg="#00ffaa" Bg="#001122" LayoutPosition="absolute" Left="2" Top="4" Width="2" Height="1" />
+    <Text Content="@FocusIndicator(1)" Fg="#00ffaa" Bg="#001122" LayoutPosition="absolute" Left="2" Top="7" Width="2" Height="1" />
+    <Text Content="@FocusIndicator(2)" Fg="#00ffaa" Bg="#001122" LayoutPosition="absolute" Left="2" Top="10" Width="2" Height="1" />
     <Input @ref="_nameInput" Value="@Name" ValueChanged="@(value => SetValue(nameof(Name), value))" Placeholder="Enter your name..." PlaceholderColor="#666666" CursorColor="#ffff00" Fg="#ffffff" Bg="#001122" Width="40" Height="1" LayoutPosition="absolute" Left="5" Top="4" OnEnter="@(_ => ShowStatus($"Submitted name: {Name}"))" />
     <Input @ref="_emailInput" Value="@Email" ValueChanged="@(value => SetValue(nameof(Email), value))" Placeholder="Enter your email..." PlaceholderColor="#666666" CursorColor="#ffff00" Fg="#ffffff" Bg="#001122" Width="40" Height="1" LayoutPosition="absolute" Left="5" Top="7" OnEnter="@(_ => ShowStatus($"Submitted email: {Email}"))" />
     <Input @ref="_commentInput" Value="@Comment" ValueChanged="@(value => SetValue(nameof(Comment), value))" Placeholder="Enter a comment..." PlaceholderColor="#666666" CursorColor="#ffff00" Fg="#ffffff" Bg="#001122" Width="60" Height="1" LayoutPosition="absolute" Left="5" Top="10" OnEnter="@(_ => ShowStatus($"Submitted comment ({Comment.Length} chars)"))" />
@@ -21,7 +24,7 @@
     private string Name { get; set; } = string.Empty;
     private string Email { get; set; } = string.Empty;
     private string Comment { get; set; } = string.Empty;
-    private string Status { get; set; } = "Focused field: Name";
+    private string Status { get; set; } = "Focused field: ▶ Name";
 
     protected override void OnInitialized()
     {
@@ -62,8 +65,11 @@
             input.Renderable.Blur();
 
         _inputs[index].Renderable.Focus();
-        ShowStatus($"Focused field: {index switch { 0 => "Name", 1 => "Email", _ => "Comment" }}");
+        ShowStatus($"Focused field: ▶ {index switch { 0 => "Name", 1 => "Email", _ => "Comment" }}");
+        InvokeAsync(StateHasChanged);
     }
+
+    private string FocusIndicator(int index) => _activeIndex == index ? "▶" : " ";
 
     private Task SetValue(string field, string value)
     {

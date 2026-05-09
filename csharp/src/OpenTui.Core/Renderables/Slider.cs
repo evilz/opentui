@@ -27,17 +27,46 @@ public class SliderRenderable : Renderable
         {
             case "left" when isHorizontal:
             case "down" when !isHorizontal:
-                Value = Math.Max(Min, Value - Step);
-                Emit("valueChanged", Value);
-                RequestRender();
+                SetValue(Value - Step);
                 break;
             case "right" when isHorizontal:
             case "up" when !isHorizontal:
-                Value = Math.Min(Max, Value + Step);
-                Emit("valueChanged", Value);
-                RequestRender();
+                SetValue(Value + Step);
                 break;
         }
+    }
+
+    public override void HandleMouse(MouseEvent mouse)
+    {
+        if (mouse.Button != MouseButton.Left || !mouse.Pressed)
+            return;
+
+        Focus();
+        bool isHorizontal = Orientation == "horizontal";
+        int trackLen = Math.Max(1, isHorizontal ? ComputedWidth : ComputedHeight);
+        int position = isHorizontal
+            ? Math.Clamp(mouse.X - ScreenX, 0, trackLen - 1)
+            : Math.Clamp(mouse.Y - ScreenY, 0, trackLen - 1);
+
+        float ratio = trackLen <= 1 ? 0 : (float)position / (trackLen - 1);
+        if (!isHorizontal)
+            ratio = 1f - ratio;
+
+        SetValue(Min + ratio * (Max - Min), snapToStep: true);
+    }
+
+    private void SetValue(float value, bool snapToStep = false)
+    {
+        var next = Math.Clamp(value, Min, Max);
+        if (snapToStep && Step > 0)
+            next = Math.Clamp(Min + MathF.Round((next - Min) / Step) * Step, Min, Max);
+
+        if (Math.Abs(next - Value) < 0.0001f)
+            return;
+
+        Value = next;
+        Emit("valueChanged", Value);
+        RequestRender();
     }
 
     protected override void RenderSelf(RenderBuffer buffer, double deltaTime)
@@ -47,7 +76,8 @@ public class SliderRenderable : Renderable
 
         var trackFg = TrackColor != null ? Rgba.FromCss(TrackColor) : Rgba.FromInts(80, 80, 80);
         var thumbFg = ThumbColor != null ? Rgba.FromCss(ThumbColor) : Rgba.FromInts(200, 200, 200);
-        var trackBg = Rgba.FromInts(20, 20, 20);
+        var valueFg = ValueColor != null ? Rgba.FromCss(ValueColor) : thumbFg;
+        var trackBg = Focused ? Rgba.FromInts(35, 35, 50) : Rgba.FromInts(20, 20, 20);
 
         bool isHorizontal = Orientation == "horizontal";
         float ratio = Max > Min ? (Value - Min) / (Max - Min) : 0;
@@ -60,8 +90,9 @@ public class SliderRenderable : Renderable
             for (int i = 0; i < trackLen; i++)
             {
                 bool isThumb = i == thumbPos;
+                bool isFilled = i < thumbPos;
                 buffer.SetCell(x + i, y, isThumb ? '●' : '─',
-                    isThumb ? thumbFg : trackFg, trackBg);
+                    isThumb ? thumbFg : isFilled ? valueFg : trackFg, trackBg);
             }
         }
         else
@@ -72,8 +103,9 @@ public class SliderRenderable : Renderable
             for (int i = 0; i < trackLen; i++)
             {
                 bool isThumb = i == thumbPos;
+                bool isFilled = i > thumbPos;
                 buffer.SetCell(x, y + i, isThumb ? '●' : '│',
-                    isThumb ? thumbFg : trackFg, trackBg);
+                    isThumb ? thumbFg : isFilled ? valueFg : trackFg, trackBg);
             }
         }
     }

@@ -66,20 +66,19 @@ public class FrameBufferRenderable : Renderable
     protected override void RenderSelf(RenderBuffer buffer, double deltaTime)
     {
         int sx = ScreenX, sy = ScreenY, w = ComputedWidth, h = ComputedHeight;
+        if (w <= 0 || h <= 0 || BufferWidth <= 0 || BufferHeight <= 0) return;
 
         // Each cell is 2 pixel rows (top=fg with ▀, bottom=bg)
         for (int cy = 0; cy < h; cy++)
         {
             for (int cx = 0; cx < w; cx++)
             {
-                int px = cx;
-                int py1 = cy * 2;
-                int py2 = cy * 2 + 1;
+                int px = Math.Clamp(cx * BufferWidth / Math.Max(1, w), 0, BufferWidth - 1);
+                int py1 = Math.Clamp((cy * 2) * BufferHeight / Math.Max(1, h * 2), 0, BufferHeight - 1);
+                int py2 = Math.Clamp((cy * 2 + 1) * BufferHeight / Math.Max(1, h * 2), 0, BufferHeight - 1);
 
-                if (px >= BufferWidth) continue;
-
-                var topColor = py1 < BufferHeight ? _pixels[py1 * BufferWidth + px] : Rgba.FromInts(0, 0, 0);
-                var botColor = py2 < BufferHeight ? _pixels[py2 * BufferWidth + px] : Rgba.FromInts(0, 0, 0);
+                var topColor = _pixels[py1 * BufferWidth + px];
+                var botColor = _pixels[py2 * BufferWidth + px];
 
                 buffer.SetCell(sx + cx, sy + cy, '▀', topColor, botColor);
             }
