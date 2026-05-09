@@ -1,5 +1,3 @@
-using System.IO;
-
 namespace OpenTui.Core.Ansi
 {
     /// <summary>ANSI escape sequence constants and TextWriter helpers.</summary>
