@@ -27,6 +27,9 @@ switch (sample)
     case "ascii":
         OpenTui.Samples.AsciFontSample.Run();
         break;
+    case "nova":
+        OpenTui.Samples.NovaTuiShowcaseSample.Run();
+        break;
     case "framebuffer":
         OpenTui.Samples.FrameBufferSample.Run();
         break;
@@ -53,7 +56,7 @@ switch (sample)
         break;
     default:
         Console.WriteLine($"Unknown sample: '{sample}'");
-        Console.WriteLine("Available samples: layout, styled, editor, scroll, input, keypress, ascii, framebuffer, code, markdown, diff, select, slider, tabs, console");
+        Console.WriteLine("Available samples: layout, styled, editor, scroll, input, keypress, ascii, nova, framebuffer, code, markdown, diff, select, slider, tabs, console");
         Environment.Exit(1);
         break;
 }
