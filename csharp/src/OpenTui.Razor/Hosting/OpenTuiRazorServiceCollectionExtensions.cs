@@ -6,12 +6,23 @@ namespace OpenTui.Razor.Hosting;
 
 public static class OpenTuiRazorServiceCollectionExtensions
 {
-    public static IServiceCollection AddOpenTuiRazor(this IServiceCollection services)
+    extension(IServiceProvider services)
     {
-        services.AddOptions<OpenTuiRazorOptions>();
-        services.TryAddSingleton<IComponentActivator, OpenTuiComponentActivator>();
-        services.TryAddSingleton<OpenTuiAppContext>();
-        services.TryAddSingleton<NoopComponentRenderer>();
-        return services;
+        public bool HasOpenTuiRazorServices =>
+            services.GetService<IServiceProviderIsService>() is { } serviceChecker &&
+            serviceChecker.IsService(typeof(OpenTuiAppContext)) &&
+            serviceChecker.IsService(typeof(NoopComponentRenderer));
+    }
+
+    extension(IServiceCollection services)
+    {
+        public IServiceCollection AddOpenTuiRazor()
+        {
+            services.AddOptions<OpenTuiRazorOptions>();
+            services.TryAddSingleton<IComponentActivator, OpenTuiComponentActivator>();
+            services.TryAddSingleton<OpenTuiAppContext>();
+            services.TryAddSingleton<NoopComponentRenderer>();
+            return services;
+        }
     }
 }

@@ -53,10 +53,22 @@ public class CliRenderer : IDisposable
             ? Rgba.FromCss(_config.BackgroundColor)
             : Rgba.FromInts(0, 0, 0);
 
-        TerminalWidth = _config.Testing ? 80 : Math.Max(1, SysConsole.WindowWidth);
-        TerminalHeight = _config.Testing ? 24 : Math.Max(1, SysConsole.WindowHeight);
+        TerminalWidth = _config.Testing ? 80 : GetConsoleDimension(() => SysConsole.WindowWidth, 80);
+        TerminalHeight = _config.Testing ? 24 : GetConsoleDimension(() => SysConsole.WindowHeight, 24);
 
         Root = new RootRenderable(this);
+    }
+
+    private static int GetConsoleDimension(Func<int> readDimension, int fallback)
+    {
+        try
+        {
+            return Math.Max(1, readDimension());
+        }
+        catch (IOException)
+        {
+            return fallback;
+        }
     }
 
     public Renderable? CurrentFocus { get; private set; }

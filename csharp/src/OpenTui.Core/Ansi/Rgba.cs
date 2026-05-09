@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace OpenTui.Core.Ansi;
 
 /// <summary>
@@ -193,5 +195,12 @@ public readonly struct Rgba : IEquatable<Rgba>
   public static bool operator ==(Rgba a, Rgba b) =>  a.Equals(b);
   public static bool operator !=(Rgba a, Rgba b) => !a.Equals(b);
 
-  public override string ToString() =>
-    $"rgba({RedF:F2}, {GreenF:F2}, {BlueF:F2}, {AlphaF:F2})";    }
+  public override string ToString()
+  {
+    var r = RedF.ToString("F2", CultureInfo.InvariantCulture);
+    var g = GreenF.ToString("F2", CultureInfo.InvariantCulture);
+    var b = BlueF.ToString("F2", CultureInfo.InvariantCulture);
+    var a = AlphaF.ToString("F2", CultureInfo.InvariantCulture);
+    return $"rgba({r}, {g}, {b}, {a})";
+  }
+}

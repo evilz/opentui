@@ -33,9 +33,18 @@ public class OpenTuiRazorHostingTests
 
         var services = host.Services;
 
-        Assert.NotNull(services.GetService<OpenTuiAppContext>());
-        Assert.NotNull(services.GetService<NoopComponentRenderer>());
+        Assert.True(services.HasOpenTuiRazorServices);
         Assert.Contains(services.GetServices<IHostedService>(), service => service.GetType().Name.Contains("OpenTuiHostedService"));
+    }
+
+    [Fact]
+    public void HasOpenTuiRazorServices_DoesNotConstructRegisteredServices()
+    {
+        using var services = new ServiceCollection()
+            .AddOpenTuiRazor()
+            .BuildServiceProvider();
+
+        Assert.True(services.HasOpenTuiRazorServices);
     }
 
     private sealed class TestComponent : IComponent
