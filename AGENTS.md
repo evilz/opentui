@@ -1,64 +1,57 @@
-# Agent Guidelines for opentui
+# OpenTUI - AI Agent Instructions
 
-Default to using Bun instead of Node.js.
+Welcome to the OpenTUI repository. This document provides essential context, architectural principles, and coding standards to guide AI agents working on this project.
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Bun automatically loads .env, so don't use dotenv.
+## Project Overview
 
-NOTE: When only changing typescript, you do NOT need to run the build script.
-The build is only needed when changing native code.
+OpenTUI is a terminal UI core library for modern .NET. It provides a cell-based rendering engine with ANSI escape sequence support, styled text, a rope-backed edit buffer with full undo/redo, a plugin architecture, and sample console applications.
 
-## APIs
+## Solution Layout
 
-Don't use bun-specific APIs. Generated code should work in Bun, Node.js and Deno runtimes.
+The repository is structured as follows under the `csharp/` directory:
 
-## Testing
+- `src/OpenTui.Core/`: Core library containing all public APIs (e.g., Ansi, Buffer, Text, Rendering).
+- `src/OpenTui.Razor/`: Razor host + component wrappers for renderables.
+- `tests/OpenTui.Tests/`: xUnit tests that must cover every public API.
+- `samples/OpenTui.Samples/`: Console application samples demonstrating features.
+- `samples/OpenTui.Razor.Samples/`: Razor-hosted sample console applications.
 
-Use `bun test` to run tests from the packages directories for a specific package.
+## Agent Guidelines & Workflow
 
-```ts#index.test.ts
-import { test, expect } from "bun:test";
+When tasked with implementing features, fixing bugs, or refactoring:
 
-test("hello world", () => {
-  expect(1).toBe(1);
-});
-```
+1. **Understand the Goal**: Review the relevant issues, files, and project layout. Ensure your changes align with the core rendering engine or text buffer architecture.
+2. **Build and Test First**: Always verify that the project builds and existing tests pass before making changes. Run the tests in `csharp/` using:
+   - `dotnet restore`
+   - `dotnet build`
+   - `dotnet test`
+3. **Run Samples**: To manually verify visual or behavioral changes, run the sample apps.
+   - Example: `dotnet run --project samples/OpenTui.Samples -- layout`
+4. **Test-Driven Changes**: Write or update xUnit tests in `tests/OpenTui.Tests/` for any new functionality or bug fix. Test coverage is critical.
 
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
+## Code Style & Conventions
 
-## Build/Test Commands
+- **Language**: Modern C# (targeting .NET 9 / 10).
+- **Naming Conventions**: 
+  - `PascalCase` for classes, structs, records, methods, and properties.
+  - `camelCase` for local variables and method parameters.
+  - `_camelCase` for private fields (standard C# conventions).
+- **Value Types**: Use `readonly struct` for value types where appropriate to ensure immutability and performance.
+- **Resource Management**: Implement `IDisposable` (and use `using` statements/declarations) for types that own unmanaged resources or event subscriptions.
+- **Documentation**: Provide XML doc comments (`/// <summary>`) for public APIs where the intent is non-obvious. Do not use JSDoc-style block comments.
+- **File Structure**: Keep one primary type per file. Ensure namespaces map cleanly to the folder structure.
 
-To build the project (before running typescript tests), run
-`bun run build`
-FROM THE REPO ROOT to make sure all packages are built correctly.
+## Key Architectural Concepts
 
-To run native tests for `packages/core`, run
-`bun run test:native`
-FROM THE `packages/core` DIRECTORY.
+- **Rgba / ColorIntent**: Used for packed color representations (RGB, ANSI-256 indexed, or terminal-default).
+- **CellBuffer**: A 2D terminal cell grid handling text, borders, blitting, and alpha blending.
+- **TextBuffer / EditBuffer**: Text content management. `EditBuffer` uses a rope-backed data structure supporting cursors, insertions, deletions, and undo/redo operations.
+- **Renderer**: Diff-based ANSI terminal renderer with alternate-screen support. Optimize for minimal terminal updates.
+- **SyntaxStyle**: Named style definitions with priority-aware merging.
 
-To filter native tests, use:
-`bun run test:native -Dtest-filter="test name"`
-FROM THE `packages/core` DIRECTORY.
+## Working with AI
 
-## Typescript Code Style
-
-- **Runtime**: Bun with TypeScript
-- **Formatting**: oxfmt (semi: false, printWidth: 120)
-- **Imports**: Use explicit imports, group by: built-ins, external deps, internal modules
-- **Types**: Strict TypeScript, use interfaces for options/configs, explicit return types for public APIs
-- **Naming**: camelCase for variables/functions, PascalCase for classes/interfaces, UPPER_CASE for constants
-- **Error Handling**: Use proper Error objects, avoid silent failures
-- **Async**: Prefer async/await over Promises, handle errors explicitly
-- **Comments**: Minimal comments, NO JSDoc
-- **File Structure**: Index files for clean exports, group related functionality
-- **Testing**: Bun test framework, descriptive test names, use beforeEach/afterEach for setup
-
-## Debugging
-
-- NOTE this is a terminal UI lib and when running examples or apps built with it,
-  you cannot currently see log output like console.log. Ask the user to run the example/app and provide the output.
-- Reproduce the issue in a test case. Do NOT start fixing without a reproducible test case.
-  Use debug logs to see what is actually happening. DO NOT GUESS.
+When interacting with a user:
+- Be concise and provide code changes that strictly adhere to the project's design paradigms.
+- Preserve existing comments and docstrings unless they are directly rendered obsolete by your code changes.
+- Prioritize performance when modifying the renderer or cell buffers, as efficiency is crucial for a TUI library.
