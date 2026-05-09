@@ -287,7 +287,7 @@
         {
             var commit = State.Snapshot.Commits[i];
             var selected = i == State.SelectedCommitIndex;
-            var graph = i % 5 switch { 0 => "○─┐   │", 1 => "│ ○─┐ │", 2 => "│ │ ○─┤", 3 => "│ └─○ │", _ => "└───○ │" };
+            var graph = (i % 5) switch { 0 => "○─┐   │", 1 => "│ ○─┐ │", 2 => "│ │ ○─┤", 3 => "│ └─○ │", _ => "└───○ │" };
             builder.OpenComponent<Text>(seq++);
             builder.AddAttribute(seq++, nameof(Text.Content), $"♦ {commit.Hash} {commit.RelativeDate,-10} {commit.Author,-18} {graph} {DecorateCommit(commit, i)}");
             builder.AddAttribute(seq++, nameof(Text.Fg), selected ? "#ffffff" : AuthorColor(i));
@@ -610,7 +610,7 @@
         return "#d1d5db";
     }
 
-    private static string AuthorColor(int index) => index % 5 switch
+    private static string AuthorColor(int index) => (index % 5) switch
     {
         0 => "#a3e635",
         1 => "#38bdf8",
