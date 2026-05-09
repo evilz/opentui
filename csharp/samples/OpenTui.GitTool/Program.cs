@@ -14,8 +14,30 @@ internal static class Program
     {
         Console.OutputEncoding = Encoding.UTF8;
 
-        var repositoryPath = args.Length > 0 ? Path.GetFullPath(args[0]) : Directory.GetCurrentDirectory();
-        var snapshot = GitRepositorySnapshot.Load(repositoryPath);
+        GitToolCliOptions options;
+        try
+        {
+            options = GitToolCliOptions.Parse(args);
+            if (options.ShowHelp)
+            {
+                GitToolHelp.Write(Console.Out);
+                return 0;
+            }
+
+            if (options.CommandName != null)
+            {
+                return GitActionExecutor.Execute(options);
+            }
+        }
+        catch (ArgumentException exception)
+        {
+            Console.Error.WriteLine(exception.Message);
+            Console.Error.WriteLine();
+            GitToolHelp.Write(Console.Error);
+            return 1;
+        }
+
+        var snapshot = GitRepositorySnapshot.Load(options.RepositoryPath);
         var width = Math.Max(MinWidth, GetConsoleDimension(ConsoleDimension.Width));
         var height = Math.Max(MinHeight, GetConsoleDimension(ConsoleDimension.Height));
 
