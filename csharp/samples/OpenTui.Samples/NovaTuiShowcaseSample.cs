@@ -33,7 +33,7 @@ internal static class NovaTuiShowcaseSample
         AddText(root, renderer, "╱╱╱╱╱", AccentPurple, 2, 2, 8);
         AddText(root, renderer, "╱╱╱╱╱", AccentPurple, 2, 3, 8);
 
-        AddText(root, renderer, "NovaTUI™", AccentPink, 10, 1, 14);
+        AddText(root, renderer, "NovaTUI", AccentPink, 10, 1, 14);
 
         var logo = new ASCIIFontRenderable(renderer)
         {
