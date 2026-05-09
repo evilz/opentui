@@ -70,12 +70,11 @@ public abstract class Renderable : EventEmitter
     public void Remove(string id)
     {
         var child = _children.FirstOrDefault(c => c.Id == id);
-        if (child != null)
-        {
-            child.Parent = null;
-            _children.Remove(child);
-            LayoutNode.RemoveChild(child.LayoutNode);
-        }
+        child?.Parent = null;
+        if (child == null) return;
+
+        _children.Remove(child);
+        LayoutNode.RemoveChild(child.LayoutNode);
     }
 
     public List<Renderable> GetChildren() => new(_children);

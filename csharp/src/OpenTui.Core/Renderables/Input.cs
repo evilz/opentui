@@ -19,18 +19,17 @@ public class InputOptions
 
 public class InputRenderable : Renderable
 {
-    private string _value = "";
     public string Value
     {
-        get => _value;
+        get;
         set
         {
-            _value = MaxLength.HasValue && value.Length > MaxLength.Value ? value[..MaxLength.Value] : value;
-            _cursorPos = Math.Min(_cursorPos, _value.Length);
-            _scrollOffset = _value.Length > 0 ? Math.Min(_scrollOffset, _value.Length - 1) : 0;
+            field = MaxLength.HasValue && value.Length > MaxLength.Value ? value[..MaxLength.Value] : value;
+            _cursorPos = Math.Min(_cursorPos, field.Length);
+            _scrollOffset = field.Length > 0 ? Math.Min(_scrollOffset, field.Length - 1) : 0;
             RequestRender();
         }
-    }
+    } = "";
     public string? Placeholder { get; set; }
     public string? PlaceholderColor { get; set; }
     public string? CursorColor { get; set; }
@@ -55,8 +54,8 @@ public class InputRenderable : Renderable
         if (opts.Height != null) SetHeight(opts.Height);
         if (opts.Value != null)
         {
-            _value = MaxLength.HasValue && opts.Value.Length > MaxLength.Value ? opts.Value[..MaxLength.Value] : opts.Value;
-            _cursorPos = _value.Length;
+            Value = opts.Value;
+            _cursorPos = Value.Length;
         }
 
         On("focused", _ => RequestRender());

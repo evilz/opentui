@@ -7,15 +7,18 @@ namespace OpenTui.Razor.Hosting;
 
 public static class OpenTuiHostBuilderExtensions
 {
-    public static IHostBuilder UseOpenTuiRazor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TComponent>(this IHostBuilder hostBuilder)
-        where TComponent : IComponent
+    extension(IHostBuilder hostBuilder)
     {
-        hostBuilder.ConfigureServices(services =>
+        public IHostBuilder UseOpenTuiRazor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TComponent>()
+            where TComponent : IComponent
         {
-            services.AddOpenTuiRazor();
-            services.AddHostedService<OpenTuiHostedService<TComponent>>();
-        });
+            hostBuilder.ConfigureServices(services =>
+            {
+                services.AddOpenTuiRazor();
+                services.AddHostedService<OpenTuiHostedService<TComponent>>();
+            });
 
-        return hostBuilder;
+            return hostBuilder;
+        }
     }
 }
