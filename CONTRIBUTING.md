@@ -5,7 +5,7 @@ Feature suggestions are subject to discussion via issues.
 
 ## Prerequisites
 
-- [.NET 9](https://dotnet.microsoft.com/download/dotnet/9.0) or later
+- [.NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) or later
 
 ## Build
 

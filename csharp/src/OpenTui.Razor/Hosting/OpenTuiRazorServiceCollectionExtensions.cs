@@ -9,8 +9,9 @@ public static class OpenTuiRazorServiceCollectionExtensions
     extension(IServiceProvider services)
     {
         public bool HasOpenTuiRazorServices =>
-            services.GetService<OpenTuiAppContext>() is not null &&
-            services.GetService<NoopComponentRenderer>() is not null;
+            services.GetService<IServiceProviderIsService>() is { } serviceChecker &&
+            serviceChecker.IsService(typeof(OpenTuiAppContext)) &&
+            serviceChecker.IsService(typeof(NoopComponentRenderer));
     }
 
     extension(IServiceCollection services)

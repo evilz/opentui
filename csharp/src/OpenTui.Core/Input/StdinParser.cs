@@ -8,8 +8,7 @@ public class StdinParser
 
     public IEnumerable<object> Feed(ReadOnlySpan<byte> data)
     {
-        foreach (var b in data)
-            _buf.Add(b);
+        _buf.AddRange(data);
         var events = new List<object>();
 
         while (_buf.Count > 0)

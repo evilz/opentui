@@ -5,11 +5,11 @@
     <a href="https://github.com/evilz/opentui/actions/workflows/build-dotnet.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/evilz/opentui/build-dotnet.yml?style=flat-square&branch=main" /></a>
 </div>
 
-OpenTUI is a terminal UI core library for **.NET 9**. It provides a cell-based rendering engine with ANSI escape sequence support, styled text, a rope-backed edit buffer with full undo/redo, a plugin architecture, and sample console applications.
+OpenTUI is a terminal UI core library for **.NET 10**. It provides a cell-based rendering engine with ANSI escape sequence support, styled text, a rope-backed edit buffer with full undo/redo, a plugin architecture, and sample console applications.
 
 ## Requirements
 
-- [.NET 9](https://dotnet.microsoft.com/download/dotnet/9.0) or later
+- [.NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) or later
 
 ## Quick Start
 
