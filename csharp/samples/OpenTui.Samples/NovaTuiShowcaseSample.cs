@@ -88,7 +88,9 @@ internal static class NovaTuiShowcaseSample
         renderer.KeyInput.On("keypress", (KeyEvent key) =>
         {
             if (key.Name is "q" or "escape")
+            {
                 renderer.Destroy();
+            }
         });
 
         renderer.Start();
