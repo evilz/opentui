@@ -61,9 +61,9 @@ internal static class NovaTuiShowcaseSample
 
         AddText(root, renderer, "None", AccentGray, 2, 12, 12);
         AddText(root, renderer, "None", AccentGray, 30, 12, 12);
-        AddText(root, renderer, "● nova-config", "#d1d5db", 60, 12, 20);
-        AddText(root, renderer, "● nova-hooks", "#d1d5db", 60, 13, 20);
-        AddText(root, renderer, "● jq", "#d1d5db", 60, 14, 20);
+        AddText(root, renderer, "nova-config", "#d1d5db", 62, 12, 18);
+        AddText(root, renderer, "nova-hooks", "#d1d5db", 62, 13, 18);
+        AddText(root, renderer, "jq", "#d1d5db", 62, 14, 18);
 
         foreach (int top in new[] { 12, 13, 14 })
         {
