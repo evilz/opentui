@@ -1,78 +1,85 @@
 @inherits SampleComponentBase
+@using OpenTui.Core.Input
 
-<Box Width="100%" Height="100%" BackgroundColor="#0f172a" PaddingTop="1" PaddingLeft="2" PaddingRight="2">
-    <Box Width="100%" Height="100%" Border="true" BorderColor="#f97316" Title=" ASCII Font Sample " BackgroundColor="#0f172a">
-        <AsciiFont @ref="_asciiFont" Width="100" Height="4" LayoutPosition="absolute" Left="3" Top="3" Text="@TextValue" Font="@CurrentFont" Color="#fb7185" BackgroundColor="#0f172a" SelectionBg="#334155" SelectionFg="#ffffff" />
-        <Text Content="@Status" Fg="#e2e8f0" LayoutPosition="absolute" Left="3" Top="10" Width="90" Height="2" />
-        <Text Content="@SelectionStatus" Fg="#7dd3fc" LayoutPosition="absolute" Left="3" Top="12" Width="90" Height="1" />
-        <Text Content="Use left/right to change font. Drag over ASCII text to select. Press c to clear, q/Esc to exit." Fg="#94a3b8" LayoutPosition="absolute" Left="3" Top="14" Width="54" Height="1" />
-    </Box>
+<Box Width="100%" Height="100%" BackgroundColor="#1b1c2a" PaddingTop="1" PaddingLeft="2" PaddingRight="2">
+    <Text Content="╱╱╱╱╱" Fg="#6057ff" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="1" Width="8" Height="1" />
+    <Text Content="╱╱╱╱╱" Fg="#6057ff" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="2" Width="8" Height="1" />
+    <Text Content="╱╱╱╱╱" Fg="#6057ff" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="3" Width="8" Height="1" />
+    <Text Content="NovaTUI" Fg="#ff5ef2" Bg="#1b1c2a" LayoutPosition="absolute" Left="10" Top="1" Width="14" Height="1" />
+    <AsciiFont Width="42" Height="4" LayoutPosition="absolute" Left="9" Top="2" Text="NOVA" Font="block" Color="#c56aff" BackgroundColor="#1b1c2a" />
+    <Text Content="v1.0.0" Fg="#6f6bff" Bg="#1b1c2a" LayoutPosition="absolute" Left="38" Top="1" Width="8" Height="1" />
+    <Text Content="@HeaderSlashes" Fg="#6057ff" Bg="#1b1c2a" LayoutPosition="absolute" Left="50" Top="1" Width="62" Height="1" />
+
+    <Text Content="~" Fg="#9ca3af" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="6" Width="2" Height="1" />
+    <Text Content="◇ phi4-mini-reasoning via Ollama" Fg="#d1d5db" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="8" Width="40" Height="1" />
+
+    <Text Content="LSPs" Fg="#6b7280" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="10" Width="12" Height="1" />
+    <Text Content="MCPs" Fg="#6b7280" Bg="#1b1c2a" LayoutPosition="absolute" Left="30" Top="10" Width="12" Height="1" />
+    <Text Content="Skills" Fg="#6b7280" Bg="#1b1c2a" LayoutPosition="absolute" Left="60" Top="10" Width="16" Height="1" />
+
+    <Text Content="None" Fg="#6b7280" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="12" Width="12" Height="1" />
+    <Text Content="None" Fg="#6b7280" Bg="#1b1c2a" LayoutPosition="absolute" Left="30" Top="12" Width="12" Height="1" />
+    <Text Content="● nova-config" Fg="#14d8a6" Bg="#1b1c2a" LayoutPosition="absolute" Left="60" Top="12" Width="20" Height="1" />
+    <Text Content="● nova-hooks" Fg="#14d8a6" Bg="#1b1c2a" LayoutPosition="absolute" Left="60" Top="13" Width="20" Height="1" />
+    <Text Content="● jq" Fg="#14d8a6" Bg="#1b1c2a" LayoutPosition="absolute" Left="60" Top="14" Width="20" Height="1" />
+
+    <Text Content=">" Fg="#2ef2d3" Bg="#1b1c2a" LayoutPosition="absolute" Left="3" Top="30" Width="2" Height="1" />
+    <Text Content="R" Fg="#ff5ef2" Bg="#2a1930" LayoutPosition="absolute" Left="5" Top="30" Width="2" Height="1" />
+    <Text Content="eady?" Fg="#6b7280" Bg="#1b1c2a" LayoutPosition="absolute" Left="6" Top="30" Width="8" Height="1" />
+
+    <Text Content="::: " Fg="#14d8a6" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="31" Width="4" Height="1" />
+    <Text Content="::: " Fg="#14d8a6" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="32" Width="4" Height="1" />
+
+    <Text Content="/ or ctrl+p commands • ctrl+l models • ctrl+j newline • ctrl+c quit • ctrl+g more" Fg="#6b7280" Bg="#1b1c2a" LayoutPosition="absolute" Left="2" Top="34" Width="110" Height="1" />
+
+    @if (_showCommandModal)
+    {
+        <Box Width="100%" Height="100%" LayoutPosition="absolute" Left="0" Top="0" BackgroundColor="#11131f" ZIndex="80" Opacity="@(0.88f)" />
+        <Box Width="72" Height="14" LayoutPosition="absolute" Left="20" Top="8" BackgroundColor="#111827" Border="true" BorderColor="#6057ff" Title=" Command Palette " ZIndex="100" PaddingTop="1" PaddingLeft="2" PaddingRight="2">
+            <Text Content="Type a command (preview modal from Ctrl+P)" Fg="#a5b4fc" Bg="#111827" Width="66" Height="1" />
+            <Text Content="" Fg="#111827" Bg="#111827" Width="66" Height="1" />
+            <Text Content="> /theme neon" Fg="#2ef2d3" Bg="#111827" Width="66" Height="1" />
+            <Text Content="  /model phi4-mini-reasoning" Fg="#d1d5db" Bg="#111827" Width="66" Height="1" />
+            <Text Content="  /skills list" Fg="#d1d5db" Bg="#111827" Width="66" Height="1" />
+            <Text Content="  /tools status" Fg="#d1d5db" Bg="#111827" Width="66" Height="1" />
+            <Text Content="" Fg="#111827" Bg="#111827" Width="66" Height="1" />
+            <Text Content="Ctrl+P: close modal • Esc: close modal • q: quit sample" Fg="#6b7280" Bg="#111827" Width="66" Height="1" />
+        </Box>
+    }
 </Box>
 
 @code {
-    private static readonly IReadOnlyList<string> Fonts = ["block", "tiny", "shade", "slick"];
-    private AsciiFont? _asciiFont;
-    private int _fontIndex;
-    private int _selectionStart;
-    private bool _dragging;
-    private string TextValue { get; set; } = "OPEN TUI";
-    private string CurrentFont => Fonts[_fontIndex];
-    private string Status => $"Font: {CurrentFont} | Supported: {string.Join(", ", Fonts)}";
-    private string SelectionStatus => _asciiFont?.Renderable.GetSelectedText() is { Length: > 0 } selected
-        ? $"Selected text: \"{selected}\""
-        : "No ASCII text selected";
+    private static readonly string HeaderSlashes = new('╱', 60);
+    private bool _showCommandModal;
 
     protected override void OnInitialized()
     {
-        SetBackground("#0f172a");
-        RegisterExitKeys();
-        RegisterMouse(HandleMouse);
-        RegisterKeypress(key =>
-        {
-            if (key.Name == "left")
-            {
-                key.PreventDefault();
-                _fontIndex = (_fontIndex - 1 + Fonts.Count) % Fonts.Count;
-                InvokeAsync(StateHasChanged);
-            }
-            else if (key.Name == "right")
-            {
-                key.PreventDefault();
-                _fontIndex = (_fontIndex + 1) % Fonts.Count;
-                InvokeAsync(StateHasChanged);
-            }
-            else if (key.Name == "c" || key.Name == "C")
-            {
-                key.PreventDefault();
-                _asciiFont?.Renderable.ClearSelection();
-                InvokeAsync(StateHasChanged);
-            }
-        });
+        SetBackground("#1b1c2a");
+        RegisterKeypress(HandleKeypress);
     }
 
-    private void HandleMouse(MouseEvent mouse)
+    private void HandleKeypress(KeyEvent key)
     {
-        var renderable = _asciiFont?.Renderable;
-        if (renderable == null || mouse.Button != MouseButton.Left)
-            return;
-
-        if (mouse.Pressed)
+        if (key.Name == "ctrl+p")
         {
-            if (!_dragging)
-            {
-                if (!renderable.ContainsPoint(mouse.X, mouse.Y))
-                    return;
-
-                _dragging = true;
-                _selectionStart = renderable.ColumnToTextIndex(mouse.X);
-            }
-
-            renderable.SetSelection(_selectionStart, renderable.ColumnToTextIndex(mouse.X));
+            key.PreventDefault();
+            _showCommandModal = !_showCommandModal;
             InvokeAsync(StateHasChanged);
+            return;
         }
-        else
+
+        if (_showCommandModal && key.Name == "escape")
         {
-            _dragging = false;
+            key.PreventDefault();
+            _showCommandModal = false;
+            InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (key.Name is "q" or "escape")
+        {
+            key.PreventDefault();
+            Exit();
         }
     }
 }
