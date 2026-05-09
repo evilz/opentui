@@ -65,9 +65,10 @@ internal static class NovaTuiShowcaseSample
         AddText(root, renderer, "● nova-hooks", "#d1d5db", 60, 13, 20);
         AddText(root, renderer, "● jq", "#d1d5db", 60, 14, 20);
 
-        AddText(root, renderer, "●", AccentMint, 60, 12, 2);
-        AddText(root, renderer, "●", AccentMint, 60, 13, 2);
-        AddText(root, renderer, "●", AccentMint, 60, 14, 2);
+        foreach (int top in new[] { 12, 13, 14 })
+        {
+            AddText(root, renderer, "●", AccentMint, 60, top, 2);
+        }
 
         AddText(root, renderer, ">", "#2ef2d3", 3, 30, 2);
         AddText(root, renderer, "R", AccentPink, 5, 30, 2, "#2a1930");
