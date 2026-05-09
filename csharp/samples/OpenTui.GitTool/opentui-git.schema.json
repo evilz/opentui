@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opentui.dev/schemas/opentui-git.schema.json",
+  "title": "OpenTUI Git Tool Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "fileView": {
+      "type": "string",
+      "enum": ["flat", "tree"],
+      "default": "flat"
+    },
+    "customCommands": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["command"],
+        "properties": {
+          "command": { "type": "string" },
+          "arguments": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          }
+        }
+      },
+      "default": {}
+    }
+  }
+}

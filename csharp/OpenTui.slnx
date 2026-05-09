@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/samples/">
     <Project Path="samples/OpenTui.Samples/OpenTui.Samples.csproj" />
+    <Project Path="samples/OpenTui.GitTool/OpenTui.GitTool.csproj" />
     <Project Path="samples/OpenTui.Razor.Samples/OpenTui.Razor.Samples.csproj" />
   </Folder>
   <Folder Name="/src/">
